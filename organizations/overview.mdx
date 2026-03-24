@@ -1,0 +1,77 @@
+---
+title: "Organizations"
+description: "Organizations group your connections, saved queries, and team members in Dory."
+---
+
+An organization is the top-level workspace in Dory. Everything you work with — connections, saved queries, and team members — belongs to an organization. You can be a member of multiple organizations and switch between them at any time.
+
+## Creating your first organization
+
+When you sign in for the first time, Dory prompts you to create an organization before you can access the workspace.
+
+<Steps>
+  <Step title="Enter a name">
+    Go to the **Create organization** screen. Type a name for your organization — for example, `Acme Data Team` or `My workspace`.
+
+    Dory automatically generates a URL slug from the name you enter.
+  </Step>
+  <Step title="Create the organization">
+    Click **Create organization**. Dory creates the organization, sets you as its owner, and redirects you to the connections page at `/{slug}/connections`.
+  </Step>
+</Steps>
+
+<Tip>
+  You can invite team members after the organization is created. You do not need to add anyone during setup.
+</Tip>
+
+## Organization settings
+
+Open **Settings** from the sidebar, then select **Organization** to manage organization details.
+
+### Name
+
+The display name shown in the app. It does not affect your workspace URL.
+
+### Slug
+
+The slug appears in every URL within your workspace — for example, `https://app.getdory.dev/acme/connections`. Slug rules:
+
+- Lowercase letters, numbers, and hyphens only
+- No spaces or special characters
+- Must be unique across all organizations
+
+<Warning>
+  Changing the slug immediately redirects you to the new URL. Any bookmarks or shared links using the old slug will stop working.
+</Warning>
+
+Click **Save changes** to apply updates to the name or slug. Only members with the **owner** role can update organization settings.
+
+## Connections and saved queries
+
+All connections and saved queries are scoped to the organization they were created in. They are not shared across organizations.
+
+When you switch to a different organization, the sidebar and workspace reflect only the connections and saved queries belonging to that organization.
+
+## Switching between organizations
+
+If you belong to multiple organizations, use the organization switcher in the sidebar to move between them. Selecting an organization sets it as your active workspace and updates the URL to `/{slug}/...`.
+
+## Creating additional organizations
+
+You can create more than one organization from the organization switcher.
+
+<Steps>
+  <Step title="Open the organization switcher">
+    Click your current organization name in the sidebar.
+  </Step>
+  <Step title="Create a new organization">
+    Select **Create organization** from the menu. Enter a name and confirm.
+  </Step>
+  <Step title="Start working">
+    Dory switches to the new organization and takes you to its connections page.
+  </Step>
+</Steps>
+
+<Note>
+  Each organization starts empty. Connections and saved queries from other organizations are not copied over.
+</Note>

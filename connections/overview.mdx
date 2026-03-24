@@ -1,0 +1,55 @@
+---
+title: "Connections"
+description: "Manage your database connections in Dory — each connection gives you full access to AI features, monitoring, and schema exploration."
+---
+
+A connection in Dory is a saved configuration that tells Dory how to reach your database, which credentials to use, and how to route traffic (including via SSH if needed). Every AI feature, schema explorer, SQL editor, and monitoring view in Dory operates within the context of a connection.
+
+## Supported databases
+
+<CardGroup cols={3}>
+  <Card title="ClickHouse" icon="database">
+    Deeply integrated. Full support for AI features, schema exploration, monitoring, privileges, and query execution.
+  </Card>
+  <Card title="PostgreSQL" icon="database" tag="Beta">
+    Supported in beta. SQL editor, schema explorer, AI features, and query execution are available.
+  </Card>
+  <Card title="MySQL" icon="database" tag="Coming soon">
+    In development. Not yet available.
+  </Card>
+</CardGroup>
+
+## Connection list view
+
+The connections page lists all connections belonging to your organization. Each connection card displays:
+
+- **Name** — the display name you gave the connection
+- **Username** — the database user associated with the connection
+- **Host** — the database server hostname or IP address
+- **Status indicator** — a colored dot reflecting the last health check result: green for reachable, red for error, grey for unknown
+
+Hovering over the status dot shows the last check timestamp, latency in milliseconds, and any error message if the connection is failing.
+
+Click a connection card to open it in the SQL editor. Use the edit (pencil) icon to modify the connection settings, or the delete (trash) icon to remove it.
+
+## Organization scoping
+
+Connections belong to an organization, not to individual users. Every member of an organization can see and use its connections. If you need separate connections for different teams or environments, create separate organizations or use descriptive names to distinguish them.
+
+## Credential storage
+
+Dory encrypts all sensitive connection data — passwords, private keys, and passphrases — at rest using the `DS_SECRET_KEY` environment variable. This key is required for Dory to decrypt stored credentials at runtime. If you rotate or lose this key, existing encrypted credentials will no longer be readable.
+
+<Warning>
+Never remove or rotate `DS_SECRET_KEY` without first exporting or re-entering your connection credentials. Losing this key means losing access to all stored passwords and SSH private keys.
+</Warning>
+
+<Tip>
+For self-hosted deployments, set `DS_SECRET_KEY` to a long, randomly generated string and store it securely. See the [environment variables reference](/configuration/environment-variables) for details.
+</Tip>
+
+## Next steps
+
+<Card title="Adding a connection" icon="plus" href="/connections/adding-connection">
+  Step-by-step instructions for connecting Dory to your ClickHouse or PostgreSQL database.
+</Card>

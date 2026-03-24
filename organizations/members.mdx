@@ -1,0 +1,85 @@
+---
+title: "Members & invitations"
+description: "Invite team members to your organization and manage their access."
+---
+
+Organization members share access to connections, saved queries, and workspace features. You manage membership from **Settings > Organization**, which lists all current members and pending invitations.
+
+## Roles
+
+Every member has one of four roles. Roles control what actions a member can take within the organization.
+
+| Role | Description |
+|------|-------------|
+| **owner** | Full control — can update organization settings, manage members, manage invitations, and manage billing. |
+| **admin** | Can manage members and invitations, read and write connections and workspaces. |
+| **member** | Can read and write connections and workspaces. Cannot manage other members. |
+| **viewer** | Read-only access to connections and workspaces. |
+
+<Note>
+  Only members with the **owner** role can update the organization name or slug, and manage billing.
+</Note>
+
+## Inviting members
+
+<Steps>
+  <Step title="Open organization settings">
+    Navigate to **Settings > Organization** in the sidebar.
+  </Step>
+  <Step title="Find the invitations section">
+    Scroll to the **Members** or invitations panel on the organization settings page.
+  </Step>
+  <Step title="Enter an email address and role">
+    Type the invitee's email address and select the role they should receive — `owner`, `admin`, `member`, or `viewer`.
+  </Step>
+  <Step title="Send the invitation">
+    Click **Invite**. Dory sends an email invitation to the address you entered. The invitation appears in the pending invitations list until the recipient accepts.
+  </Step>
+</Steps>
+
+<Info>
+  Invitations have an expiry date. If the recipient does not accept before it expires, you will need to send a new invitation.
+</Info>
+
+## Accepting an invitation
+
+When someone invites you to an organization, you receive an email with a link to accept. Clicking the link takes you to Dory, where you can accept or reject the invitation.
+
+Once accepted, the organization appears in your organization switcher and you can access it immediately.
+
+## Updating a member's role
+
+Owners and admins can change the role of an existing member.
+
+<Steps>
+  <Step title="Open organization settings">
+    Go to **Settings > Organization** and find the member in the members list.
+  </Step>
+  <Step title="Change the role">
+    Select a new role from the role dropdown next to the member's name and save.
+  </Step>
+</Steps>
+
+## Removing a member
+
+Only members with permission to delete members (owners and admins) can remove someone from the organization.
+
+<Steps>
+  <Step title="Open organization settings">
+    Go to **Settings > Organization** and locate the member you want to remove.
+  </Step>
+  <Step title="Remove the member">
+    Click the remove action next to their name and confirm. The member immediately loses access to the organization.
+  </Step>
+</Steps>
+
+<Warning>
+  Removing a member cannot be undone. To restore access, you must send a new invitation.
+</Warning>
+
+## Re-sending or canceling an invitation
+
+Pending invitations are listed in the organization settings page.
+
+- To **cancel** an invitation, click the cancel action next to the pending invitation. The invite link in the recipient's email becomes invalid immediately.
+- To **re-send** an invitation, cancel the existing one and create a new invitation to the same email address.

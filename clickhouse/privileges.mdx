@@ -1,0 +1,165 @@
+---
+title: "ClickHouse privileges"
+description: "Native UI for managing ClickHouse users, roles, and access grants — no manual SQL required."
+---
+
+<Note>
+  ClickHouse privileges management is only available when your active connection is a ClickHouse database.
+</Note>
+
+The **Privileges** section gives you a point-and-click interface for managing ClickHouse users and roles. Instead of writing `CREATE USER`, `GRANT`, `REVOKE`, or `DROP USER` SQL statements by hand, you fill out a form and Dory issues the correct DDL against your cluster.
+
+## Navigating to privileges
+
+<Steps>
+  <Step title="Open a ClickHouse connection">
+    Select a ClickHouse connection from the left sidebar.
+  </Step>
+  <Step title="Go to Privileges">
+    Click **Privileges** in the connection navigation. Dory loads the **Users** tab.
+  </Step>
+  <Step title="Switch between users and roles">
+    Use the **Users** and **Roles** tab triggers at the top of the page to manage each entity type.
+  </Step>
+</Steps>
+
+## User management
+
+The **Users** tab lists all ClickHouse users defined in the connected instance. Each row shows the username and the roles currently granted to that user.
+
+### Creating a user
+
+<Steps>
+  <Step title="Click Create user">
+    Click the **Create user** button at the top right of the Users tab.
+  </Step>
+  <Step title="Fill in the user form">
+    Complete the user dialog:
+
+    | Field | Description |
+    |---|---|
+    | **Username** | The login name for the ClickHouse user. Required. |
+    | **Password** | Initial password. Leave blank to create a user without a password. |
+    | **Allowed hosts** | Comma-separated list of IP addresses or hostnames that may connect as this user. Leave blank to allow connections from any host. |
+    | **Granted roles** | One or more existing roles to assign to this user. Select from the available roles in your instance. |
+    | **Default role** | The role that becomes active immediately on login. Must be one of the granted roles. |
+  </Step>
+  <Step title="Optionally enable On Cluster">
+    Toggle **On Cluster** to propagate the `CREATE USER` statement to all nodes in a ClickHouse cluster. Then select the target cluster from the dropdown. See [Cluster-level operations](#cluster-level-operations) for details.
+  </Step>
+  <Step title="Submit">
+    Click **Create**. Dory runs the appropriate `CREATE USER` statement against ClickHouse and refreshes the user list.
+  </Step>
+</Steps>
+
+### Editing a user
+
+Click the edit action on any user row to open the same form pre-populated with that user's current settings. When editing:
+
+- The **Password** field displays a placeholder (`********`). Leave it unchanged to keep the existing password. Type a new value to change it.
+- The **Username** field can be updated. Dory issues an `ALTER USER ... RENAME TO` statement if the name changes.
+- Granted roles and default roles can be added or removed freely.
+
+Click **Save changes** to apply.
+
+### Deleting a user
+
+Click the delete action on a user row. Dory shows a confirmation dialog with the username before issuing `DROP USER`. This action is irreversible.
+
+<Warning>
+  Deleting a user immediately revokes all active sessions and grants for that account. There is no soft-delete or recovery.
+</Warning>
+
+## Role management
+
+The **Roles** tab lists all ClickHouse roles defined in the connected instance. Each role can carry one or more privilege grants scoped to specific databases, tables, and columns.
+
+### Creating a role
+
+<Steps>
+  <Step title="Click Create role">
+    Click the **Create role** button at the top right of the Roles tab.
+  </Step>
+  <Step title="Set the role name">
+    Enter a name for the role. Role names must be unique within the ClickHouse instance.
+  </Step>
+  <Step title="Add privilege grants">
+    Click **Add privilege** to add one or more privilege rows. Each row has:
+
+    | Field | Description |
+    |---|---|
+    | **Privilege** | The ClickHouse privilege keyword (e.g. `SELECT`, `INSERT`, `ALTER`). Dory uppercases the value automatically. |
+    | **Database** | The target database. Use `*` to match all databases. |
+    | **Table** | The target table. Use `*` to match all tables in the database. |
+    | **Columns** | Comma-separated column names to restrict the privilege to specific columns. Leave blank for all columns. |
+    | **Grant option** | When enabled, the role can grant this same privilege to other users or roles. |
+  </Step>
+  <Step title="Optionally enable On Cluster">
+    Toggle **On Cluster** to propagate the `CREATE ROLE` statement across the cluster.
+  </Step>
+  <Step title="Submit">
+    Click **Create**. Dory runs the appropriate `CREATE ROLE` and `GRANT` statements and refreshes the role list.
+  </Step>
+</Steps>
+
+### Editing a role
+
+Click the edit action on any role row. The form opens pre-populated with the role's current name and privilege grants. You can:
+
+- Rename the role (issues `ALTER ROLE ... RENAME TO`)
+- Add new privilege rows
+- Remove existing privilege rows by clicking the trash icon on that row
+- Change the database, table, column scope, or grant option on any row
+
+Click **Save changes** to apply.
+
+### Deleting a role
+
+Click the delete action on a role row. Dory shows a confirmation dialog before issuing `DROP ROLE`. Deleting a role automatically revokes it from all users it was granted to.
+
+<Warning>
+  Dropping a role removes it from every user who has been granted that role. Review which users hold the role before deleting it.
+</Warning>
+
+## Assigning roles to users
+
+ClickHouse has two distinct role assignment concepts that Dory surfaces in the user form:
+
+**Granted roles** — Roles assigned to the user. The user can activate any of these roles during a session. Internally, Dory issues `GRANT <role> TO <user>`.
+
+**Default role** — The single role that becomes active automatically when the user logs in, without the user needing to call `SET ROLE`. Only one default role can be selected, and it must already be a granted role. Internally, Dory issues `ALTER USER <user> DEFAULT ROLE <role>`.
+
+To assign multiple roles to a user, select all of them in the **Granted roles** multi-select. Then optionally choose one as the **Default role**.
+
+## Cluster-level operations
+
+For replicated ClickHouse setups, user and role operations can be propagated to all cluster nodes using the `ON CLUSTER` clause.
+
+Both the user form and the role form include an **On Cluster** toggle. When you enable it:
+
+1. Dory fetches the list of available clusters from your ClickHouse instance.
+2. A **Cluster** dropdown appears. Select the target cluster.
+3. Dory appends `ON CLUSTER <cluster_name>` to the generated DDL statement.
+
+<Info>
+  The **On Cluster** toggle is disabled automatically if no clusters are detected on the connected instance.
+</Info>
+
+Example DDL that Dory generates with **On Cluster** enabled:
+
+```sql
+CREATE USER analyst ON CLUSTER my_cluster
+  IDENTIFIED WITH plaintext_password BY 'secret'
+  HOST ANY
+```
+
+```sql
+GRANT SELECT ON analytics.* TO analyst ON CLUSTER my_cluster
+```
+
+## Security considerations
+
+- **Password storage** — Passwords are passed directly to ClickHouse and are never stored in Dory. Dory reads back only the user metadata (name, hosts, roles) that ClickHouse exposes through its system tables.
+- **Allowed hosts** — Leaving the allowed hosts field blank grants access from any host (`HOST ANY`). For production users, specify explicit IP addresses or hostname patterns to restrict access.
+- **Grant option** — Role privileges with the grant option enabled allow the role holder to re-grant those privileges to other principals. Use this carefully; it can lead to privilege escalation if granted broadly.
+- **Cluster operations** — `ON CLUSTER` operations are replicated asynchronously by ClickHouse. A successful response from Dory means the DDL was accepted by the coordinator node, not that all replicas have applied it.

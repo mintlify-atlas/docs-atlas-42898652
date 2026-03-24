@@ -1,0 +1,176 @@
+---
+title: "Environment variables"
+description: "Complete reference for all Dory environment variables."
+---
+
+Dory is configured entirely through environment variables. Copy `.env.example` to `.env` and adjust the values for your deployment.
+
+<Tip>
+For a minimal local Docker setup, only `DS_SECRET_KEY` and `BETTER_AUTH_SECRET` are strictly required. AI features are optional — omitting `DORY_AI_API_KEY` disables the SQL Copilot and chat features.
+</Tip>
+
+## Minimal setup vs full production
+
+| Variable | Minimal (local) | Production |
+|---|---|---|
+| `DS_SECRET_KEY` | Required | Required |
+| `BETTER_AUTH_SECRET` | Use default or generate | Generate with `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | `http://localhost:3000` | Your public URL |
+| `DORY_AI_API_KEY` | Optional | Optional |
+| `RESEND_API_KEY` | Not needed | Required for email verification |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Not needed | Required for GitHub OAuth |
+| `DATABASE_URL` | Not needed (PGLite) | Recommended for multi-user deployments |
+
+---
+
+## AI provider
+
+Controls which AI model powers the SQL Copilot and database chat. Omitting `DORY_AI_API_KEY` disables all AI features.
+
+<ParamField query="DORY_AI_PROVIDER" type="string" default="openai">
+  The AI provider to use. Supported values: `openai`, `openai-compatible`, `anthropic`, `google`, `qwen`, `xai`.
+</ParamField>
+
+<ParamField query="DORY_AI_MODEL" type="string" default="gpt-4o-mini">
+  The model identifier to request from the provider. Examples: `gpt-4o-mini`, `claude-3-5-sonnet-20241022`, `gemini-1.5-flash`, `grok-2-latest`.
+</ParamField>
+
+<ParamField query="DORY_AI_API_KEY" type="string">
+  API key for the selected AI provider. When not set, Copilot features are disabled.
+</ParamField>
+
+<ParamField query="DORY_AI_URL" type="string" default="https://api.openai.com/v1">
+  Base URL for the AI provider API. Override when using an OpenAI-compatible endpoint such as Ollama or Azure OpenAI.
+</ParamField>
+
+<ParamField query="NEXT_PUBLIC_DORY_CLOUD_API_URL" type="string">
+  Optional remote Dory Cloud API endpoint. Example: `https://app.getdory.dev/api`.
+</ParamField>
+
+---
+
+## Authentication
+
+<ParamField query="BETTER_AUTH_SECRET" type="string" required>
+  Secret key used to sign sessions and tokens. Generate a secure value with `openssl rand -hex 32`. A default is provided in `.env.example` for local use only — always replace this in production.
+</ParamField>
+
+<ParamField query="BETTER_AUTH_URL" type="string" default="http://localhost:3000">
+  The public-facing base URL of your Dory deployment. Used to construct verification and invitation email links.
+</ParamField>
+
+<ParamField query="BETTER_AUTH_API_KEY" type="string">
+  API key for Better Auth Infra / Dash / Sentinel. Required if you want audit logs and Sentinel-backed security protections. Obtain from the Better Auth Dashboard.
+</ParamField>
+
+<ParamField query="BETTER_AUTH_API_URL" type="string">
+  Optional override for the Better Auth Infra API endpoint. Leave empty to use the Better Auth default.
+</ParamField>
+
+<ParamField query="BETTER_AUTH_KV_URL" type="string">
+  Optional override for the Better Auth KV store URL. Used by Sentinel and Dash if you need a non-default Infra endpoint.
+</ParamField>
+
+<ParamField query="TRUSTED_ORIGINS" type="string" default="http://localhost:3000,http://127.0.0.1:3000">
+  Comma-separated list of trusted origins for CORS and CSRF protection. Add your production domain here.
+</ParamField>
+
+---
+
+## Encryption
+
+<ParamField query="DS_SECRET_KEY" type="string" required>
+  Secret key used to encrypt sensitive data stored in the database, such as database connection passwords. Generate with `openssl rand -base64 32`. A default is provided in `.env.example` — always replace this in production.
+</ParamField>
+
+---
+
+## Email
+
+<ParamField query="RESEND_API_KEY" type="string">
+  API key for [Resend](https://resend.com), used to send verification emails and organization invitations. Required when email verification is enabled.
+</ParamField>
+
+---
+
+## OAuth
+
+<ParamField query="GITHUB_CLIENT_ID" type="string">
+  GitHub OAuth application client ID. Required to enable GitHub login.
+</ParamField>
+
+<ParamField query="GITHUB_CLIENT_SECRET" type="string">
+  GitHub OAuth application client secret. Required to enable GitHub login.
+</ParamField>
+
+---
+
+## Database
+
+Controls where Dory stores its own data (connections, saved queries, chat history, user accounts).
+
+<ParamField query="DB_TYPE" type="string" default="pglite">
+  Storage backend for Dory's internal database. Use `pglite` for the embedded default or `postgres` for an external PostgreSQL instance.
+</ParamField>
+
+<ParamField query="PGLITE_DB_PATH" type="string" default="/data/dory">
+  Filesystem path where PGLite stores its data files. Only used when `DB_TYPE=pglite`. Mount this path as a Docker volume to persist data.
+</ParamField>
+
+<ParamField query="DATABASE_URL" type="string">
+  PostgreSQL connection string. Only used when `DB_TYPE=postgres`. Example: `postgresql://user:password@host:5432/dbname`.
+</ParamField>
+
+---
+
+## Runtime
+
+<ParamField query="DORY_RUNTIME" type="string">
+  Server-side runtime mode. Accepted values: `desktop`, `docker`, `web`. The official Docker image sets this to `docker`. The Electron desktop app sets this to `desktop`. Leave empty for standard web deployments.
+</ParamField>
+
+<ParamField query="NEXT_PUBLIC_DORY_RUNTIME" type="string">
+  Client-side runtime mode. Must match `DORY_RUNTIME`. Set by the Docker image and Electron app automatically.
+</ParamField>
+
+---
+
+## Connection timeouts
+
+<ParamField query="CONNECTION_REQUEST_TIMEOUT_MS" type="number" default="20000">
+  Timeout in milliseconds for connection test and initial connect operations.
+</ParamField>
+
+<ParamField query="QUERY_REQUEST_TIMEOUT_MS" type="number" default="120000">
+  Timeout in milliseconds for regular query execution. Applies to ClickHouse queries.
+</ParamField>
+
+---
+
+## Analytics
+
+<ParamField query="NEXT_PUBLIC_POSTHOG_KEY" type="string">
+  PostHog project API key. Only required if you want to enable usage analytics.
+</ParamField>
+
+<ParamField query="NEXT_PUBLIC_POSTHOG_HOST" type="string" default="https://us.i.posthog.com">
+  PostHog ingestion host. Override to use a self-hosted PostHog instance or a different regional endpoint.
+</ParamField>
+
+---
+
+## Stripe (billing)
+
+Only relevant for Dory Cloud deployments with billing enabled. Leave these unset for self-hosted deployments.
+
+<ParamField query="STRIPE_SECRET_KEY" type="string">
+  Stripe secret API key. Required only when billing is enabled.
+</ParamField>
+
+<ParamField query="STRIPE_WEBHOOK_SECRET" type="string">
+  Stripe webhook signing secret. Required only when billing is enabled.
+</ParamField>
+
+<ParamField query="STRIPE_PRO_MONTHLY_PRICE_ID" type="string">
+  Stripe price ID for the Pro monthly plan. Required only when billing is enabled.
+</ParamField>

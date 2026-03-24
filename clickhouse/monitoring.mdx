@@ -1,0 +1,142 @@
+---
+title: "ClickHouse monitoring"
+description: "Real-time metrics, query performance, and operational insights purpose-built for ClickHouse."
+---
+
+<Note>
+  ClickHouse monitoring is only available when your active connection is a ClickHouse database. If you open this section with a PostgreSQL or other connection, Dory redirects you to the SQL Console.
+</Note>
+
+The **Monitoring** section gives you a live view into query activity on your ClickHouse cluster. It surfaces summary metrics, latency and throughput trends, and detailed per-query logs — all filtered by user, database, query type, and time range — without requiring you to write any SQL against system tables.
+
+## Navigating to monitoring
+
+<Steps>
+  <Step title="Open a ClickHouse connection">
+    Select a ClickHouse connection from the left sidebar. Dory sets it as your active connection.
+  </Step>
+  <Step title="Go to Monitoring">
+    Click **Monitoring** in the connection navigation. Dory loads the **Overview** tab.
+  </Step>
+  <Step title="Use the tab bar to switch views">
+    Four tabs are available at the top of the page: **Overview**, **Query Logs**, **Slow Queries**, and **Error Queries**.
+  </Step>
+</Steps>
+
+## Overview dashboard
+
+The Overview tab shows four summary metric cards at the top of the page. Each card is clickable and navigates to the corresponding detail view.
+
+| Card | What it counts | Navigates to |
+|---|---|---|
+| **Total queries** | All queries executed in the selected time range | Query Logs |
+| **Slow queries** | Queries that exceeded the slow threshold | Slow Queries |
+| **Error queries** | Queries that completed with an exception | Error Queries |
+| **Active users** | Distinct users who executed queries | Query Logs |
+
+Below the summary cards, the Overview tab renders four time-series area charts: query latency, query throughput, error count, and slow query count. These charts share the same time range and filters as the rest of the page.
+
+### Recent queries
+
+At the bottom of the Overview tab, a **Recent queries** card shows the most recent query log entries. Click **View all** to navigate to the full Query Logs view.
+
+## Filter bar
+
+A persistent filter bar appears on every monitoring tab. Changes here affect all views simultaneously. Click **Apply** to reload data with the updated filters, or **Reset** to return to the defaults.
+
+| Filter | Options | Default |
+|---|---|---|
+| **User** | All users or a specific database user | All |
+| **Database** | All databases or a specific database | All |
+| **Query type** | All, SELECT, INSERT, DDL, Other | All |
+| **Time range** | Last 1 hour, 6 hours, 24 hours, 7 days | Last 1 hour |
+| **Min duration** | Minimum query duration in milliseconds | 0 ms |
+
+<Tip>
+  The **Slow Queries** tab and the Overview tab also offer a **dynamic threshold** toggle. When set to dynamic, Dory calculates the slow query threshold automatically based on your query distribution rather than using a fixed millisecond value.
+</Tip>
+
+### Time range buckets
+
+The time-series charts bucket data into intervals that scale with the selected time range:
+
+| Time range | Bucket size |
+|---|---|
+| Last 1 hour | 1 minute |
+| Last 6 hours | 10 minutes |
+| Last 24 hours | 30 minutes |
+| Last 7 days | 6 hours |
+
+## Query latency trends
+
+The **Query Latency** chart on the Overview tab plots duration percentiles over time as area series. You can display both series together or focus on one using the **Both / P95 / P50** toggle.
+
+**P50 (median latency)** — Half of all queries completed faster than this value. It represents typical query performance during the period.
+
+**P95 (95th percentile latency)** — 95% of all queries completed faster than this value. It captures tail latency and helps identify intermittent slowdowns that the median hides.
+
+When P95 diverges sharply from P50, it indicates that a small number of queries are running significantly slower than the typical workload.
+
+## Query throughput
+
+The **Query Throughput** chart plots **QPM (queries per minute)** over time. It shows the rate of query execution across all users and databases in the selected time range, bucketed according to the time range table above.
+
+A sudden drop in QPM combined with rising error counts can indicate a ClickHouse availability issue. A sustained increase in QPM without a proportional rise in latency indicates healthy scaling.
+
+## Slow queries view
+
+The **Slow Queries** tab shows a paginated table of queries that exceeded the configured threshold. Each row exposes:
+
+- **Query ID** — Unique identifier for the query execution
+- **Time** — Timestamp when the query completed
+- **Duration** — Execution time in milliseconds, color-coded by severity (amber above 200 ms, red at 1 000 ms and above)
+- **User** — The ClickHouse user who ran the query
+- **Database** — The target database
+- **Read rows / bytes** — Data scanned during execution
+- **Written bytes** — Data written during execution
+- **Memory usage** — Peak memory allocated for the query
+- **SQL** — The query text, truncated to one line
+
+The table is sorted by duration (descending) by default. Click any column header to re-sort. Use the pagination controls at the bottom to page through results. Page size options are 10, 20, 50, 100, and 200 rows.
+
+<Tip>
+  Combine the **User** and **Database** filters with the **Min duration** filter to narrow down slow queries from a specific workload.
+</Tip>
+
+## Error queries view
+
+The **Error Queries** tab shows queries that completed with a ClickHouse exception. The columns are the same as the Slow Queries view, with the addition of:
+
+- **Error message** — The exception text from ClickHouse, shown truncated with a tooltip for the full message on hover
+
+Rows with an exception are highlighted with a subtle destructive background color for quick visual scanning.
+
+The table is sorted by event time (descending) by default, so the most recent errors appear first.
+
+## Query logs view
+
+The **Query Logs** tab shows the complete query history for the selected filters, including successful, slow, and error queries in a single table. The columns are identical to the Slow Queries view.
+
+The default sort is by event time (descending). Use this view to:
+
+- Audit all queries executed by a specific user
+- Review the full query history for a database
+- Correlate a spike in QPM with specific queries
+
+Pagination defaults to 50 rows per page and supports the same page size options as the other views.
+
+## Data columns reference
+
+All three detail views share these columns:
+
+| Column | Description |
+|---|---|
+| Query ID | Unique ClickHouse query ID for the execution |
+| Time | Event completion timestamp |
+| Duration | Execution time in milliseconds |
+| User | ClickHouse user account that ran the query |
+| Database | Database targeted by the query |
+| Read rows / bytes | Rows scanned and bytes read from storage |
+| Written bytes | Bytes written to storage |
+| Memory usage | Peak memory allocated during execution |
+| SQL | Query text |

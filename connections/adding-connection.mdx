@@ -1,0 +1,126 @@
+---
+title: "Adding a connection"
+description: "Connect Dory to your ClickHouse or PostgreSQL database."
+---
+
+## Adding a new connection
+
+<Steps>
+  <Step title="Open the connections page">
+    Navigate to **Connections** from the sidebar. Click **New connection** to open the connection dialog.
+  </Step>
+
+  <Step title="Enter a connection name and select a database type">
+    Fill in the **Connection Name** field with a recognizable label for this connection (for example, `Production ClickHouse` or `Analytics PG`).
+
+    Select your database type from the **Type** dropdown. The available options are **ClickHouse** and **PostgreSQL**. Selecting a type updates the form to show the fields relevant to that database.
+  </Step>
+
+  <Step title="Fill in the connection details">
+    Enter the host, port, and other fields for your database. The required fields differ by database type — see the sections below for a full breakdown.
+  </Step>
+
+  <Step title="Enter credentials">
+    In the **Authentication** section, enter the **Database Username** and optionally a **Password**. The username is required; the password can be left blank if your database does not require one.
+  </Step>
+
+  <Step title="Configure SSH tunneling (optional)">
+    If your database is not directly reachable from the network where Dory runs, enable **SSH** and fill in the bastion host details. See [SSH tunneling](/connections/ssh-tunneling) for a full walkthrough.
+  </Step>
+
+  <Step title="Test the connection">
+    Click **Test Connection** to verify that Dory can reach your database with the provided settings. A success message confirms the connection is working. If the test fails, review the error message and check your host, port, credentials, and firewall rules.
+  </Step>
+
+  <Step title="Save the connection">
+    Click **Create Connection** to save. The connection will appear in your organization's connection list and is immediately available for use.
+  </Step>
+</Steps>
+
+## Form fields reference
+
+### Shared fields (all database types)
+
+| Field | Required | Description |
+|---|---|---|
+| **Connection Name** | Yes | Display name shown in the connection list and throughout the UI. |
+| **Type** | Yes | Database type: `ClickHouse` or `PostgreSQL`. Changing this resets port and protocol defaults. |
+| **Default Database** | No | The database or schema to connect to by default. Can be overridden per query. |
+| **SSL** | No | Toggle on to require an encrypted TLS connection to the database server. |
+| **Database Username** | Yes | The database user Dory will authenticate as. |
+| **Password** | No | The password for the database user. Leave blank if the user has no password. |
+
+### ClickHouse-specific fields
+
+<Tabs>
+  <Tab title="Fields">
+    | Field | Required | Default | Description |
+    |---|---|---|---|
+    | **Host** | Yes | — | ClickHouse server hostname or IP address. Accepts bare hostnames, IP addresses, or full URLs including the protocol. |
+    | **HTTP Port** | Yes | `8123` | The HTTP interface port. ClickHouse Cloud uses `8443` when SSL is enabled. |
+    | **Default Database** | No | `default` | Optional default database used when no database is explicitly selected in a query. |
+    | **SSL** | No | Off | Enable for ClickHouse Cloud or any HTTPS endpoint. When enabled, the HTTP port defaults to `8443`. |
+  </Tab>
+  <Tab title="Default values">
+    ```typescript
+    {
+      type: 'clickhouse',
+      port: 9000,
+      httpPort: 8123,
+      ssl: false,
+      database: ''
+    }
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+Dory connects to ClickHouse over its HTTP interface, not the native TCP port. The **HTTP Port** field (`8123` for plain HTTP, `8443` for HTTPS) is what Dory uses to send queries. The native TCP port (`9000`) is stored but not used for query execution.
+</Note>
+
+### PostgreSQL-specific fields
+
+<Tabs>
+  <Tab title="Fields">
+    | Field | Required | Default | Description |
+    |---|---|---|---|
+    | **Host** | Yes | — | PostgreSQL server hostname or IP address. Also accepts `postgresql://` connection URLs. |
+    | **Port** | Yes | `5432` | The PostgreSQL server port. |
+    | **Default Database** | No | `postgres` | The PostgreSQL database to connect to. Defaults to `postgres` if left blank. |
+    | **SSL** | No | Off | Enable when the server requires TLS. Sets `sslmode=require` in the connection options. |
+  </Tab>
+  <Tab title="Default values">
+    ```typescript
+    {
+      type: 'postgres',
+      port: 5432,
+      ssl: false,
+      database: 'postgres'
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Editing a connection
+
+To edit an existing connection, click the pencil icon on the connection card. The same dialog opens pre-populated with the saved values. Make your changes and click **Save Changes**.
+
+<Note>
+Changing the host, port, or credentials of an active connection will take effect for all new queries. Any queries currently in progress will complete using the previous connection settings.
+</Note>
+
+## Deleting a connection
+
+Click the trash icon on the connection card and confirm the deletion. Deleting a connection removes all associated credentials and SSH settings permanently. This action cannot be undone.
+
+<Warning>
+Deleting a connection removes it for all members of your organization, not just your own session.
+</Warning>
+
+## SSH tunneling
+
+If your database is hosted in a private network and is only accessible via a bastion host, enable SSH tunneling in the connection form. Dory will route all database traffic through the SSH tunnel without requiring you to expose your database to the public internet.
+
+<Card title="SSH tunneling" icon="shield" href="/connections/ssh-tunneling">
+  Learn how to configure SSH tunneling for databases behind a bastion host.
+</Card>

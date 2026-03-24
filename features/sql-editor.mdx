@@ -1,0 +1,140 @@
+---
+title: "SQL editor"
+description: "Multi-tab SQL workspace with schema-aware autocomplete, saved queries, and multiple result sets."
+---
+
+The SQL editor is the central workspace in Dory. It combines a Monaco-based code editor, schema-aware autocomplete, a resizable result pane, and a built-in AI Copilot panel — all in one interface.
+
+## Editor interface
+
+The workspace is split into three resizable panels:
+
+- **Left sidebar** — schema explorer and saved queries
+- **Editor area** — Monaco editor with SQL-specific syntax highlighting
+- **Result pane** — query output, execution metadata, and chart view
+
+The editor and result pane are vertically split and independently resizable. The Copilot panel opens as a horizontal panel to the right of the editor.
+
+## Schema-aware autocomplete
+
+Autocomplete is grounded in your live database schema, not generic SQL keywords.
+
+As you type, the editor suggests:
+
+- **Tables** — all tables in the connected database
+- **Columns** — columns scoped to the tables already referenced in your query
+- **Functions** — dialect-specific functions (ClickHouse, PostgreSQL)
+- **Aliases** — aliases you have defined earlier in the same query
+- **Join candidates** — when writing `JOIN`, the editor surfaces related tables and their key columns
+
+This works for multi-table queries and subqueries. Schema metadata is fetched from the live connection, so suggestions always reflect the current state of your database.
+
+<Tip>
+Autocomplete is most useful after you have referenced at least one table — the editor then narrows column suggestions to only the tables in scope.
+</Tip>
+
+## Multi-tab workspace
+
+You can open multiple queries in parallel using the tab bar at the top of the editor.
+
+<Steps>
+  <Step title="Open a new tab">
+    Click the **+** button in the tab bar or use **Cmd/Ctrl + T** to open a blank SQL tab.
+  </Step>
+  <Step title="Switch between tabs">
+    Click any tab to switch to it. Each tab maintains its own query text, cursor position, and result set independently.
+  </Step>
+  <Step title="Rename a tab">
+    Double-click a tab title to rename it. Dory also auto-generates a title based on the query content when you run a query.
+  </Step>
+  <Step title="Close a tab">
+    Click the **×** on a tab to close it. Unsaved changes are discarded.
+  </Step>
+</Steps>
+
+<Note>
+Each tab has its own independent session. Running a query in one tab does not affect the results shown in another.
+</Note>
+
+## Saved queries
+
+Frequently used queries can be saved and organized into folders.
+
+<Steps>
+  <Step title="Save a query">
+    Click **Save Query** in the editor toolbar, or press **Cmd/Ctrl + S**. A dialog appears where you can enter a name for the query.
+  </Step>
+  <Step title="Organize into folders">
+    From the saved queries sidebar, use **Create Folder** to group related queries. Drag queries into folders or use the **Move to Folder** option from the context menu.
+  </Step>
+  <Step title="Open a saved query">
+    Click any saved query in the sidebar to open it in a new tab.
+  </Step>
+</Steps>
+
+When the query currently in the editor exactly matches a saved query, the toolbar shows a **Saved** indicator instead of the save button.
+
+## Running queries and viewing results
+
+### Run options
+
+The **Run** button executes the SQL in the current tab. The button label shows the active row limit:
+
+- `Run ( Limit: 1000 )` — a server-side row limit is applied automatically
+- `Run ( Limit: SQL )` — your query already contains a `LIMIT` clause; no extra limit is added
+
+Click the **chevron** next to Run to change the row limit. Available options are configurable per session.
+
+To run only a selected portion of a query, highlight the text and click Run — the button label updates to **Run Selected**.
+
+### Cancel a running query
+
+While a query is running, a **Stop** button replaces the run options. Click it to cancel the query.
+
+### Multiple result sets
+
+If your SQL contains multiple statements separated by semicolons, each statement produces its own result set. The result pane shows an **Overview** tab listing all result sets and their status, plus a numbered tab for each individual result.
+
+```sql
+-- This produces two result sets
+SELECT count() FROM events;
+SELECT uniq(user_id) FROM events;
+```
+
+Switch between result sets using the tabs at the top of the result pane. The Overview table shows the SQL text, row count, execution time, and status for each result.
+
+### Result pane features
+
+| Feature | Description |
+|---------|-------------|
+| Table view | Paginated data grid with column sorting and filtering |
+| Chart view | Instant visualization — switch using the Table / Charts toggle |
+| Search bar | Full-text search across all rows in the current result set |
+| Column filters | Per-column filter rules applied on top of search |
+| CSV export | Download the current result set as a CSV file |
+| Status bar | Execution time, row count, and limit notice |
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| **Cmd/Ctrl + Enter** | Run query |
+| **Cmd/Ctrl + S** | Save current query |
+| **Cmd/Ctrl + T** | New tab |
+| **Cmd/Ctrl + /** | Toggle line comment |
+| **Cmd/Ctrl + Shift + F** | Format SQL |
+| **Cmd/Ctrl + Z** | Undo |
+| **Cmd/Ctrl + Shift + Z** | Redo |
+| **Ctrl + Space** | Trigger autocomplete manually |
+
+## SQL Copilot integration
+
+The Copilot panel sits alongside the editor and shares the current tab's SQL and schema context. Open it by clicking the Copilot button in the top navigation bar.
+
+The Copilot has three sub-tabs:
+
+- **Ask** — chat with the AI to generate SQL from natural language
+- **Action** — run quick actions (fix error, optimize, rewrite) on the current query
+- **Context** — inspect what the AI knows about the current query and inferred tables
+
+See [SQL Copilot](/features/sql-copilot) for full details.

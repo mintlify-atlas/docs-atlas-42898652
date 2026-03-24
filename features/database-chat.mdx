@@ -1,0 +1,98 @@
+---
+title: "Database chat"
+description: "Conversational AI assistant for exploring your database — ask questions about your data in plain language."
+---
+
+Database chat is a full-page conversational AI interface for exploring your connected database. Unlike the SQL Copilot, which is focused on the current query in the editor, Database chat is an open-ended assistant for answering questions about your data, understanding table structures, and running exploratory queries.
+
+## Opening database chat
+
+Navigate to **Chat** in the left sidebar for the current connection. The chat page opens with a session sidebar on the left and the conversation thread on the right.
+
+## How it understands your schema
+
+When you send a message, Dory builds a schema context from your live database connection before forwarding the request to the AI. This context includes:
+
+- Representative tables and their column names, types, and comments
+- The current database name
+- Primary key information where available
+
+The AI is instructed to write SQL and answer questions based only on this real schema. If you ask about a table or column that does not exist, the assistant says it is not sure rather than inventing a plausible-sounding answer.
+
+The schema context is scoped automatically based on what you ask. If you mention a specific table, the context focuses on that table and lists its columns in detail. For general questions, the context includes a sample of representative tables from the database.
+
+<Note>
+Schema context is loaded on each message. If you add a table to your database, it will appear in subsequent chat messages without any manual refresh.
+</Note>
+
+## Example conversations
+
+### Understanding your schema
+
+```text
+You: What tables do I have related to users?
+
+Assistant: Based on your schema, there are three tables related to users:
+- users — stores account details (id, email, created_at, status)
+- user_sessions — tracks login sessions (id, user_id, started_at, ip_address)
+- user_events — records activity events (id, user_id, event_type, occurred_at)
+```
+
+### Querying data
+
+```text
+You: How many users signed up in the last 7 days?
+
+Assistant: Here is a query for that:
+
+SELECT count() AS new_users
+FROM users
+WHERE created_at >= now() - INTERVAL 7 DAY
+
+Result: 1,842 new users in the last 7 days.
+```
+
+The assistant uses a built-in `sqlRunner` tool to execute SELECT queries against your live database and return actual results — it does not fabricate row counts or metrics.
+
+### Understanding field meanings
+
+```text
+You: What does the status column in the users table contain?
+
+Assistant: The status column in users is a String type.
+Based on distinct values in the table: 'active', 'suspended', 'pending_verification'.
+```
+
+## Chat sessions and history
+
+Each conversation is stored as a named session. Sessions are listed in the sidebar on the left.
+
+| Action | How |
+|--------|-----|
+| Create a new session | Click **New chat** at the top of the session sidebar |
+| Rename a session | Click the session name to enter edit mode, then press Enter |
+| Switch between sessions | Click any session in the list |
+| Delete a session | Hover the session and click the delete icon, then confirm |
+
+Session history is per-connection. Sessions for one database connection do not appear in another.
+
+<Tip>
+Creating separate sessions for different investigation threads keeps your history organized and makes it easier to return to a previous line of inquiry.
+</Tip>
+
+## How database chat differs from SQL Copilot
+
+| | Database chat | SQL Copilot |
+|--|--------------|-------------|
+| **Where it lives** | Dedicated chat page | Panel inside the SQL editor |
+| **Primary purpose** | Open-ended data exploration and Q&A | Generating and fixing SQL in the active editor tab |
+| **Context** | Full schema overview | Current editor SQL, inferred tables, and selected text |
+| **Executes queries** | Yes — runs SELECT queries and shows results inline | No — generates SQL for you to run manually |
+| **Session history** | Persistent, named sessions | Tied to the active editor tab |
+| **Best for** | Exploring unfamiliar schemas, ad-hoc data questions | Writing, fixing, and optimizing specific SQL queries |
+
+Both features use the same configured AI provider. You can switch between them depending on what you need — use Chat for exploration and Copilot when you are actively writing a query in the editor.
+
+## Supported AI providers
+
+Database chat uses the AI provider configured for your Dory instance. See [AI providers](/configuration/ai-providers) for setup instructions. All providers supported by Dory are available for chat — OpenAI, Anthropic, Google Gemini, xAI Grok, Qwen, and any OpenAI-compatible endpoint.

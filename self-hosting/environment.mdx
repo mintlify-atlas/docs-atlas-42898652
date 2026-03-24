@@ -1,0 +1,144 @@
+---
+title: "Environment reference"
+description: "Complete environment variable reference for self-hosted Dory deployments."
+---
+
+All configuration is passed to Dory via environment variables. This page lists every variable, its default value, and whether it is required.
+
+## AI provider
+
+Controls which AI model Dory uses for the SQL Copilot and database chat features. If no AI provider is configured, Copilot features are disabled.
+
+<ParamField path="DORY_AI_PROVIDER" type="string" default="openai">
+  The AI provider to use. Supported values: `openai`, `openai-compatible`, `anthropic`, `google`, `qwen`, `xai`.
+</ParamField>
+
+<ParamField path="DORY_AI_MODEL" type="string" default="gpt-4o-mini">
+  The model name to pass to the provider. Must be a valid model identifier for the selected `DORY_AI_PROVIDER`.
+</ParamField>
+
+<ParamField path="DORY_AI_API_KEY" type="string">
+  The API key for the AI provider. Required to enable Copilot features.
+</ParamField>
+
+<ParamField path="DORY_AI_URL" type="string" default="https://api.openai.com/v1">
+  The base URL for the AI provider API. For `openai-compatible` providers, set this to the provider's endpoint.
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_DORY_CLOUD_API_URL" type="string">
+  Optional remote Dory Cloud API endpoint. Example: `https://app.getdory.dev/api`.
+</ParamField>
+
+## Authentication
+
+See [Authentication setup](/self-hosting/authentication) for full configuration details.
+
+<ParamField path="BETTER_AUTH_SECRET" type="string" required>
+  Secret used to sign sessions and tokens. Generate with `openssl rand -hex 32`. Use the default only for local single-user development — always replace with a secure random value in production.
+</ParamField>
+
+<ParamField path="BETTER_AUTH_URL" type="string" default="http://localhost:3000" required>
+  The public base URL of your Dory deployment. Must match the URL you use to access Dory. Used to construct callback URLs and invitation links.
+</ParamField>
+
+<ParamField path="GITHUB_CLIENT_ID" type="string">
+  GitHub OAuth app client ID. Required only if enabling GitHub login.
+</ParamField>
+
+<ParamField path="GITHUB_CLIENT_SECRET" type="string">
+  GitHub OAuth app client secret. Required only if enabling GitHub login.
+</ParamField>
+
+<ParamField path="RESEND_API_KEY" type="string">
+  Resend API key for sending transactional emails (email verification, password reset, invitations). Required only if enabling email verification.
+</ParamField>
+
+<ParamField path="BETTER_AUTH_API_KEY" type="string">
+  Better Auth Dash API key. Optional — enables audit logs and Sentinel-backed security protections.
+</ParamField>
+
+<ParamField path="BETTER_AUTH_API_URL" type="string">
+  Override for the Better Auth Infra endpoint. Leave empty to use the Better Auth default.
+</ParamField>
+
+<ParamField path="BETTER_AUTH_KV_URL" type="string">
+  Override for the Better Auth KV store URL. Leave empty to use the Better Auth default.
+</ParamField>
+
+## Encryption
+
+See [Encryption](/self-hosting/encryption) for details.
+
+<ParamField path="DS_SECRET_KEY" type="string" required>
+  Secret key used to encrypt stored sensitive data such as database connection passwords. Generate with `openssl rand -base64 32`. Changing this key after initial setup will break existing encrypted data.
+</ParamField>
+
+## Storage
+
+See [Storage configuration](/self-hosting/storage) for full details.
+
+<ParamField path="DB_TYPE" type="string" default="pglite">
+  Application database backend. Supported values: `pglite`, `postgres`.
+</ParamField>
+
+<ParamField path="PGLITE_DB_PATH" type="string" default="/data/dory">
+  Filesystem path where PGLite stores its data. Only used when `DB_TYPE=pglite`. Mount a host volume at this path to persist data across container restarts.
+</ParamField>
+
+<ParamField path="DATABASE_URL" type="string">
+  PostgreSQL connection string. Required when `DB_TYPE=postgres`. Format: `postgresql://user:password@host:5432/dbname`.
+</ParamField>
+
+## Trusted origins
+
+See [Trusted origins](/self-hosting/trusted-origins) for details.
+
+<ParamField path="TRUSTED_ORIGINS" type="string" default="http://localhost:3000,http://127.0.0.1:3000">
+  Comma-separated list of origins allowed for CSRF protection and cross-origin requests. Set to your deployment URL in production.
+</ParamField>
+
+## Runtime mode
+
+<ParamField path="DORY_RUNTIME" type="string">
+  Server-side runtime identifier. The official Docker image sets this to `docker` automatically. Valid values: `docker`, `web`, `desktop`. Do not set this manually unless you have a specific reason.
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_DORY_RUNTIME" type="string">
+  Client-side runtime identifier. The official Docker image sets this to `docker` automatically. Must match `DORY_RUNTIME`.
+</ParamField>
+
+## Connection timeouts
+
+<ParamField path="CONNECTION_REQUEST_TIMEOUT_MS" type="number" default="20000">
+  Timeout in milliseconds for connection test requests. Applies when adding or testing a database connection.
+</ParamField>
+
+<ParamField path="QUERY_REQUEST_TIMEOUT_MS" type="number" default="120000">
+  Timeout in milliseconds for regular query execution. Applies to ClickHouse and other query requests.
+</ParamField>
+
+## Analytics
+
+<ParamField path="NEXT_PUBLIC_POSTHOG_KEY" type="string">
+  PostHog project API key. Optional — only required if you want to enable product analytics.
+</ParamField>
+
+<ParamField path="NEXT_PUBLIC_POSTHOG_HOST" type="string" default="https://us.i.posthog.com">
+  PostHog ingestion host. Only used when `NEXT_PUBLIC_POSTHOG_KEY` is set.
+</ParamField>
+
+## Generating secrets
+
+Use these commands to generate secure values for required secrets:
+
+```bash
+# DS_SECRET_KEY
+openssl rand -base64 32 | tr -d '\n'
+
+# BETTER_AUTH_SECRET
+openssl rand -hex 32
+```
+
+<Warning>
+  Never reuse secrets between deployments, and never commit `.env` files containing real secret values to version control.
+</Warning>

@@ -1,0 +1,95 @@
+---
+title: "Introduction"
+description: "AI-native SQL workspace for modern databases — SQL Copilot, schema-aware editor, database chat, and operational tools in one place."
+---
+
+<img
+  src="https://media.brand.dev/5ffd6ce4-2434-4b4b-920a-f8cacac8b48b.svg"
+  alt="Dory"
+  style={{ height: "48px", marginBottom: "24px" }}
+/>
+
+# Welcome to Dory
+
+**Dory is an AI-native Data Workspace for modern databases.**
+
+It combines intelligent SQL editing, context-aware AI assistance, conversational database exploration, and deep operational integration across modern databases into a single unified studio — helping engineers and analysts write, understand, and manage data more efficiently.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get Dory running in minutes with Docker or download the desktop app
+  </Card>
+  <Card title="SQL Copilot" icon="brain" href="/features/sql-copilot">
+    AI assistant grounded in your real database schema
+  </Card>
+  <Card title="SQL Editor" icon="code" href="/features/sql-editor">
+    Multi-tab workspace with schema-aware autocomplete
+  </Card>
+  <Card title="Database Chat" icon="message" href="/features/database-chat">
+    Conversational AI for exploring your data
+  </Card>
+</CardGroup>
+
+## What is Dory?
+
+Dory is a full-featured data studio that runs as a **Docker container** or a **native desktop application** (macOS and Windows). It connects to your existing databases and layers AI-powered tools on top of them — without requiring you to move data anywhere.
+
+### Key features
+
+<CardGroup cols={2}>
+  <Card title="SQL Copilot" icon="wand-magic-sparkles">
+    Generate, fix, and explain SQL using natural language. The AI understands your actual database schema — not just generic SQL syntax.
+  </Card>
+  <Card title="Schema-aware autocomplete" icon="keyboard">
+    Intelligent completions for tables, columns, functions, and aliases based on your real schema.
+  </Card>
+  <Card title="Intelligent SQL editor" icon="table-columns">
+    Multi-tab workspace with saved queries, multiple result sets, and built-in chart visualization.
+  </Card>
+  <Card title="Database chatbot" icon="comments">
+    Ask questions about your data in plain language. The chatbot understands your schema and answers contextually.
+  </Card>
+  <Card title="ClickHouse monitoring" icon="chart-line">
+    Real-time metrics, query latency trends (P50/P95), and throughput monitoring purpose-built for ClickHouse.
+  </Card>
+  <Card title="ClickHouse privileges" icon="shield-halved">
+    Native UI for managing ClickHouse users, roles, and grants — no manual SQL required.
+  </Card>
+</CardGroup>
+
+## Supported databases
+
+| Database   | Status                   |
+|------------|--------------------------|
+| ClickHouse | Deeply integrated        |
+| PostgreSQL | Supported (Beta)         |
+| MySQL      | In development           |
+| DuckDB     | Planned                  |
+| SQLite     | Planned                  |
+
+## Deployment options
+
+Dory supports two runtime modes:
+
+- **Docker** — Self-host with a single `docker run` command. Ideal for teams and server deployments.
+- **Desktop** — Native macOS and Windows app. Ideal for individual developers and analysts.
+
+Both modes use the same core application — the runtime is determined by the `DORY_RUNTIME` environment variable.
+
+## Who is Dory for?
+
+- **Data engineers** building and debugging data pipelines
+- **Data analysts** exploring and querying databases
+- **Database platform teams** managing ClickHouse clusters
+- **ClickHouse operations teams** monitoring query performance and managing access control
+
+## Try it now
+
+<CardGroup cols={2}>
+  <Card title="Live demo" icon="play" href="https://app.getdory.dev">
+    Try Dory instantly — no signup required. Click "Enter as Demo".
+  </Card>
+  <Card title="Run with Docker" icon="docker" href="/deployment/docker">
+    Deploy Dory on your own infrastructure in minutes.
+  </Card>
+</CardGroup>

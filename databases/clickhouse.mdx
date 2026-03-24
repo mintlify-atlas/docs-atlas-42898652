@@ -1,0 +1,120 @@
+---
+title: "ClickHouse"
+description: "ClickHouse is deeply integrated into Dory with monitoring, privilege management, and full SQL support."
+---
+
+ClickHouse is the primary database Dory is built around. Beyond standard SQL execution, Dory includes purpose-built operational tools for ClickHouse — a monitoring dashboard backed by `system.query_log`, a native privilege management UI, and cluster-aware operations — none of which require writing SQL manually.
+
+## What "deeply integrated" means
+
+For most databases, Dory provides a SQL editor, copilot, chatbot, and schema explorer. For ClickHouse, it goes further:
+
+<CardGroup cols={2}>
+  <Card title="Monitoring dashboard" icon="chart-line" href="/clickhouse/monitoring">
+    Real-time query metrics, latency trends (P50/P95), throughput (QPM), and multi-dimensional filtering — all sourced from `system.query_log`.
+  </Card>
+  <Card title="Privilege management" icon="shield-halved" href="/clickhouse/privileges">
+    Create and manage users, roles, and grants through a UI. Supports cluster-level operations (`ON CLUSTER`) without writing `GRANT` or `CREATE USER` SQL.
+  </Card>
+  <Card title="Query cancellation" icon="circle-stop">
+    Running queries can be cancelled using `KILL QUERY WHERE query_id = ... SYNC` — surfaced as a cancel action in the SQL editor.
+  </Card>
+  <Card title="Per-database query context" icon="database">
+    Queries can target any database within the connection without reconnecting — Dory opens a temporary scoped client per request when needed.
+  </Card>
+</CardGroup>
+
+## Connection setup
+
+<Steps>
+  <Step title="Open connection settings">
+    Navigate to **Connections** in the sidebar and click **Add connection**. Select **ClickHouse** as the connection type.
+  </Step>
+  <Step title="Enter connection details">
+    Fill in the following fields:
+
+    | Field | Description | Default |
+    |-------|-------------|---------|
+    | **Host** | Hostname or IP of your ClickHouse server. Accepts bare hostnames, IP addresses, or full URLs (`https://host:8443`). | — |
+    | **Port** | HTTP interface port. Dory connects over the HTTP/HTTPS interface, not native TCP. | `8123` (HTTP), `8443` (HTTPS) |
+    | **Username** | ClickHouse user to authenticate as. | `default` |
+    | **Password** | Password for the user. Leave empty if the user has no password. | — |
+    | **SSL** | Enable to use HTTPS (`https://`) and port `8443`. | Off |
+
+    <Note>
+      Dory uses the ClickHouse **HTTP interface** (ports `8123` / `8443`), not the native TCP interface (port `9000`). Make sure the HTTP interface is accessible from where Dory is running.
+    </Note>
+  </Step>
+  <Step title="Test and save">
+    Click **Test connection** to verify connectivity. Dory will ping the server and report the ClickHouse version. Save the connection once the test passes.
+  </Step>
+</Steps>
+
+### SSL configuration
+
+Enable the **SSL** toggle in the connection form to connect over HTTPS. When SSL is enabled, Dory uses port `8443` by default and sets the URL scheme to `https://`.
+
+You can also specify the full URL with scheme in the **Host** field — for example, `https://my-cluster.example.com` — and Dory will respect the protocol automatically.
+
+### Advanced options
+
+The connection form accepts a JSON options object for additional ClickHouse settings:
+
+```json
+{
+  "request_timeout": 60000,
+  "clickhouse_settings": {
+    "max_execution_time": 60,
+    "max_result_rows": 10000
+  }
+}
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `request_timeout` | number (ms) | HTTP request timeout in milliseconds. Minimum `1000`. |
+| `clickhouse_settings` | object | Key-value pairs passed directly as ClickHouse query settings. |
+
+## Supported ClickHouse versions
+
+Dory works with any ClickHouse version that exposes the HTTP interface and `system.query_log`. The monitoring dashboard queries `system.query_log` using standard ClickHouse SQL — no version-specific APIs are used.
+
+<Tip>
+  ClickHouse Cloud is fully supported. Use your cluster hostname and port `8443` with SSL enabled.
+</Tip>
+
+## ClickHouse-specific features
+
+### Monitoring
+
+The monitoring dashboard reads from `system.query_log` to surface:
+
+- **Total queries**, **slow queries** (≥ 100 ms), **error queries**, and **active users** for any time window
+- **Query latency trends** — P50 and P95 in configurable time buckets
+- **Query throughput** — queries per minute (QPM)
+- **Detailed query log** — paginated, filterable by user, database, query type, duration, and free-text search
+- **Slow query list** — sorted by duration; supports dynamic P95-based thresholding
+- **Error query list** — queries where `exception` is non-empty
+
+See [ClickHouse monitoring](/clickhouse/monitoring) for full details.
+
+### Privilege management
+
+The privileges UI lets you manage ClickHouse access control without writing SQL:
+
+- Create, edit, and delete **users** — username, password, allowed hosts, granted roles, default roles
+- Create, edit, and delete **roles** — name, privilege grants at table/database/global scope
+- All operations support **`ON CLUSTER`** for replicated setups
+
+See [ClickHouse privileges](/clickhouse/privileges) for full details.
+
+## Limitations and considerations
+
+<Warning>
+  Dory connects over the HTTP interface only. Connections that expose only the native TCP port (`9000`) are not supported. Verify that your ClickHouse server has the HTTP interface enabled and reachable.
+</Warning>
+
+- **Result size limit**: Large query results that exceed V8's string size limit will return a `RESULT_TOO_LARGE` error. Use `LIMIT` in your queries for very large tables.
+- **`system.query_log` access**: The monitoring dashboard requires the connected user to have `SELECT` access to `system.query_log`. If the user lacks this permission, monitoring metrics will not load.
+- **Cluster operations**: Privilege operations with `ON CLUSTER` require the connected user to have the necessary cluster-level permissions in ClickHouse.
+- **Default database**: If no database is specified in the identity, Dory defaults to `default`.

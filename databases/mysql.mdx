@@ -1,0 +1,45 @@
+---
+title: "MySQL"
+description: "MySQL support is currently in development."
+---
+
+<Warning>
+  MySQL support is **not yet available**. The driver is in development and has not been released.
+</Warning>
+
+MySQL is on the Dory roadmap. Once released, it will follow the same connection model as [PostgreSQL](/databases/postgresql) and [ClickHouse](/databases/clickhouse) — you will be able to add a MySQL connection, browse your schema, and use the SQL editor and AI tools against your MySQL databases.
+
+## What to expect when MySQL support arrives
+
+Based on Dory's existing database support model, MySQL will include:
+
+- **SQL editor** — multi-tab workspace with schema-aware autocomplete
+- **SQL Copilot** — AI-assisted query generation, fixing, and explanation grounded in your MySQL schema
+- **Database chatbot** — conversational exploration of your tables and data
+- **Schema explorer** — browse databases, tables, and columns in the sidebar
+- **Connection management** — host, port, database, username, password, and SSL configuration
+
+Deep operational features (monitoring, privilege management) are ClickHouse-specific and are not planned for MySQL.
+
+## Track progress
+
+The Dory roadmap is maintained as a public GitHub discussion:
+
+<Card title="Dory roadmap" icon="map" href="https://github.com/dorylab/dory/discussions/35">
+  Follow the roadmap on GitHub to see when MySQL support is scheduled and what else is planned.
+</Card>
+
+To get notified when MySQL support ships, star or watch the [dorylab/dory](https://github.com/dorylab/dory) repository on GitHub. Release notes are published with each version.
+
+## In the meantime
+
+If you need to work with data that is also available in a PostgreSQL or ClickHouse database, Dory supports both today:
+
+<CardGroup cols={2}>
+  <Card title="PostgreSQL" icon="elephant" href="/databases/postgresql">
+    Connect Dory to a PostgreSQL database for AI-assisted querying and schema exploration.
+  </Card>
+  <Card title="ClickHouse" icon="database" href="/databases/clickhouse">
+    Full deep integration including monitoring, privilege management, and cluster operations.
+  </Card>
+</CardGroup>

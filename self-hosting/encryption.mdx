@@ -1,0 +1,92 @@
+---
+title: "Encryption"
+description: "How Dory encrypts sensitive data like database connection credentials."
+---
+
+Dory encrypts sensitive data at rest using a symmetric secret key. This protects stored credentials if the underlying database file is accessed directly.
+
+## DS_SECRET_KEY
+
+`DS_SECRET_KEY` is the encryption key used to encrypt sensitive stored data, including database connection passwords and other credentials you add via the connection manager.
+
+Set it as an environment variable:
+
+```bash
+DS_SECRET_KEY="<your-secret-key>"
+```
+
+### Generating the key
+
+Generate a secure 256-bit key encoded as base64:
+
+```bash
+openssl rand -base64 32
+```
+
+Example output (do not use this value):
+
+```
+PEhyv+Y9pUuBl0IAm6K91cpa5OMBj1Mudt1Bx3IM5AE=
+```
+
+Pass the output directly to the environment variable. Strip any trailing newline if using command substitution:
+
+```bash
+-e DS_SECRET_KEY="$(openssl rand -base64 32 | tr -d '\n')"
+```
+
+<Warning>
+  The `.env.example` file ships with a placeholder key. You must replace it with your own generated value before storing any real connection credentials.
+</Warning>
+
+## What is encrypted
+
+`DS_SECRET_KEY` is used to encrypt:
+
+- Database connection passwords stored in the connection manager
+- Other sensitive fields saved as part of connection configurations
+
+It is **not** used to encrypt:
+
+- Session tokens (protected by `BETTER_AUTH_SECRET`)
+- Query results or query history (stored in plaintext in the application database)
+- Data in your connected databases (Dory never writes to your databases)
+
+## Changing the key
+
+<Warning>
+  Changing `DS_SECRET_KEY` on a running instance will break all existing encrypted data. Any stored connection passwords will be unreadable and connections will fail to authenticate.
+</Warning>
+
+If you need to rotate the key:
+
+<Steps>
+  <Step title="Back up the database">
+    Stop the container and back up the PGLite data directory (or take a PostgreSQL dump) before making any changes.
+
+    ```bash
+    docker stop dory
+    cp -r /data/dory /backups/dory-pre-rotation-$(date +%Y%m%d-%H%M%S)
+    ```
+  </Step>
+  <Step title="Re-enter connection credentials">
+    After rotating the key and restarting, all stored connection passwords will be invalid. You will need to re-enter the password for each saved connection in the Dory connection manager.
+  </Step>
+  <Step title="Start with the new key">
+    Update `DS_SECRET_KEY` in your environment configuration and restart the container:
+
+    ```bash
+    docker start dory
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  Store your `DS_SECRET_KEY` in a secrets manager (e.g., AWS Secrets Manager, HashiCorp Vault, or a Docker secret) rather than in a plaintext `.env` file on the host.
+</Tip>
+
+## Key storage recommendations
+
+- Do not commit `DS_SECRET_KEY` to version control.
+- Do not reuse the same key across multiple independent Dory deployments.
+- Keep a secure backup of the key. If the key is lost and the container is rebuilt, all stored connection passwords become permanently unrecoverable.

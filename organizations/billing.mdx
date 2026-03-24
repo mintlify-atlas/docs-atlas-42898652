@@ -1,0 +1,102 @@
+---
+title: "Billing & plans"
+description: "Manage your Dory subscription and plan limits."
+---
+
+Billing applies to the **cloud/web version** of Dory. If you are running Dory via Docker and have not configured Stripe environment variables, billing is disabled and all features are available with no limits.
+
+<Note>
+  Self-hosted Docker deployments are free with no plan restrictions. Billing only activates when the `STRIPE_SECRET_KEY` and related Stripe environment variables are set. If those variables are absent, the Billing page is hidden and no limits are enforced.
+</Note>
+
+## Plans
+
+Dory has two plans:
+
+| Plan | Description |
+|------|-------------|
+| **Hobby** | The default plan for every new organization. Suitable for individuals and small teams getting started. |
+| **Pro** | Paid plan with expanded limits. Managed through Stripe. |
+
+When no active Stripe subscription is present, the organization is on Hobby. The organization returns to Hobby if a Pro subscription is canceled.
+
+## Viewing your current plan
+
+Navigate to **Settings > Billing** to see:
+
+- **Current plan** — Hobby or Pro
+- **Subscription status** — the status Stripe reports for your subscription (`active`, `trialing`, `past_due`, `canceled`, etc.)
+- **Stripe subscription ID** — the identifier for your subscription in Stripe
+- **Current period end** — the date your current billing period ends
+
+<Info>
+  The **Billing** tab only appears in **Settings** when billing is enabled for your deployment. On self-hosted Docker without Stripe configuration, this tab is not shown.
+</Info>
+
+## Upgrading to Pro
+
+Only organization **owners** can upgrade, cancel, or manage billing.
+
+<Steps>
+  <Step title="Open billing settings">
+    Go to **Settings > Billing**.
+  </Step>
+  <Step title="Click Upgrade to Pro">
+    If your organization is on Hobby, the **Upgrade to Pro** button is visible. Click it.
+  </Step>
+  <Step title="Complete checkout in Stripe">
+    Dory redirects you to a Stripe-hosted checkout page. Enter your payment details and complete the purchase.
+  </Step>
+  <Step title="Return to Dory">
+    After a successful payment, Stripe redirects you back to **Settings > Billing**. The plan display updates to **Pro** once Stripe confirms the subscription is active.
+  </Step>
+</Steps>
+
+## Managing your subscription
+
+If your organization has an active Pro subscription, the **Manage billing** button appears in **Settings > Billing**. Clicking it opens the Stripe billing portal, where you can:
+
+- Update your payment method
+- View past invoices
+- Cancel your subscription
+
+<Warning>
+  Only the organization **owner** can access the Manage billing button. Members with other roles see a read-only view of the current plan.
+</Warning>
+
+## Cancellation
+
+When you cancel a Pro subscription through the Stripe portal, the cancellation is scheduled for the end of the current billing period. During this time:
+
+- The plan remains **Pro** until the period ends
+- A notice appears in **Settings > Billing** showing the scheduled cancellation date
+- After the period ends, the organization reverts to **Hobby**
+
+## Subscription status reference
+
+| Status | Meaning |
+|--------|---------|
+| `active` | Subscription is current and paid. |
+| `trialing` | In a trial period; Pro features are active. |
+| `past_due` | Payment failed; subscription remains provisionally active while Stripe retries. |
+| `incomplete` | Initial payment not yet confirmed. |
+| `incomplete_expired` | Initial payment window expired; the subscription was never activated. |
+| `unpaid` | All payment retries exhausted; organization is on Hobby. |
+| `canceled` | Subscription has ended; organization is on Hobby. |
+| `paused` | Subscription is paused. |
+
+For statuses other than `active` or `trialing`, the organization is treated as Hobby until Stripe reports a valid active or trialing state.
+
+## Self-hosted configuration
+
+To **enable** billing on a self-hosted Docker deployment, set the required Stripe environment variables in your environment. To **disable** billing entirely, omit or unset those variables — the Billing settings tab will be hidden and no plan restrictions will apply.
+
+```bash docker run example
+docker run \
+  -e STRIPE_SECRET_KEY=sk_live_... \
+  -e STRIPE_WEBHOOK_SECRET=whsec_... \
+  # other env vars...
+  getdory/dory:latest
+```
+
+Without `STRIPE_SECRET_KEY`, billing is disabled regardless of any other configuration.

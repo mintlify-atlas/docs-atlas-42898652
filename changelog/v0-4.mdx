@@ -1,0 +1,195 @@
+---
+title: "v0.4 releases"
+description: "Changelog for all Dory v0.4.x releases."
+---
+
+## v0.4.10
+
+### Fixes
+
+- Resolved workflow failures in macOS and Windows packaging pipelines.
+- Fixed distribution errors during Docker-based releases.
+
+### Maintenance
+
+- Removed unused environment variables from CI/CD workflows and Electron main process files.
+
+---
+
+## v0.4.9
+
+### Fixes
+
+- Fixed workflow failures in macOS and Windows packaging, as well as the main release pipeline, ensuring reliable artifact builds and versioned releases.
+
+### Internal
+
+- Updated GitHub Actions workflows to resolve transient errors and improve cross-platform build stability.
+
+---
+
+## v0.4.8
+
+### Features
+
+- Added support for a dedicated beta environment, enabling safer testing and preview of upcoming features.
+
+### Improvements
+
+- Removed the organization entry from the user navigation sidebar in the web app, simplifying the UI for users within an organization context.
+
+### Internal
+
+- Updated GitHub Actions workflows to better support the new beta environment, including changes to beta, release, macOS, and Windows packaging workflows.
+
+---
+
+## v0.4.7
+
+### Fixes
+
+- Fixed email verification failures in the demo authentication flow.
+- Resolved errors related to `better-auth` integration, including schema and migration updates for PostgreSQL and pglite.
+
+### Features
+
+- Added periodic update checks to the Electron desktop app to improve auto-update reliability.
+
+### Improvements
+
+- Upgraded Next.js from v14.2.35 to v16.2.0 across all web applications, enabling modern React Server Components, improved routing, and performance enhancements.
+- Updated Kysely ORM from v0.28.12 to v0.28.14 for minor stability and type-safety improvements.
+
+### Internal
+
+- Integrated `better-auth` configuration for unified authentication handling.
+- Refactored and synchronized database migrations and schemas to support new auth and organization features.
+
+---
+
+## v0.4.6
+
+### Features
+
+- **Organization support**: Added full multi-organization functionality, including organization creation, settings (organization details, members, invitations), and routing via `[organization]` dynamic segments.
+- **Session expiration handling**: Introduced session expiry logic in the auth system to improve security and user session management.
+- **Dash integration**: Added support for Dash, including updated auth client logic, database migrations, and schema changes.
+- **Sentinel integration**: Added Sentinel with corresponding environment variable updates and auth layer hooks.
+
+### Improvements
+
+- **Environment configuration**: Updated `.env.example` with new required variables: `BETTER_AUTH_API_KEY` and Sentinel-related keys.
+
+### Internal
+
+- **Database migration reset**: Refactored and reset the pGLite migration list, cleaning up legacy migration files and snapshots.
+
+---
+
+## v0.4.6-beta.0 <Badge color="yellow">Beta</Badge>
+
+- **Backup and Recovery Support**: Added logic to back up and restore workspace data using PostgreSQL-compatible storage. This enables resilience against data loss and supports workspace recovery workflows in the web app.
+
+---
+
+## v0.4.5-beta.0 <Badge color="yellow">Beta</Badge>
+
+### Fixes
+
+- Resolved build failures caused by dependency inconsistencies in `yarn.lock`.
+
+### Improvements
+
+- Updated the application name across configuration and migration files to reflect the new branding consistently.
+
+---
+
+## v0.4.4-beta.0 <Badge color="yellow">Beta</Badge>
+
+### Fixes
+
+- Resolved database migration errors in both PostgreSQL and pglite environments, ensuring reliable schema updates.
+- Removed unknown or unused dependencies from the web application's package manifest, improving build stability and reducing bundle size.
+
+### Improvements
+
+- Refactored routing and component structure to consistently use `organization` as a top-level path parameter—enabling better multi-tenancy support and clearer URL semantics across chatbot and copilot features.
+
+### Internal
+
+- Updated database migration scripts, including new SQL migrations and metadata snapshots, to align PostgreSQL and pglite schemas.
+
+---
+
+## v0.4.3
+
+### Features
+
+- **Organization plugin integration**: Migrated core authentication and team-handling logic into a dedicated organization plugin, enabling more scalable and modular multi-organization support across the web app.
+
+### Improvements
+
+- **Simplified team context handling**: Removed reliance on `defaultTeamId` across auth flows (Electron auth consume/finalize), API routes, and client-side auth utilities—reducing ambiguity and improving consistency when resolving the current organization or team.
+
+### Fixes
+
+- **Database migration reliability**: Updated Drizzle migration tooling and added repair scripts to ensure consistent schema state across PostgreSQL and pglite environments, especially after organization-related schema changes.
+
+### Docs
+
+- **README updates**: Multiple iterative improvements to documentation clarity, including setup instructions, architecture notes, and usage guidance for the new organization-aware workflows.
+
+### Internal
+
+- **Refactored auth layer**: Consolidated and simplified auth utilities (`auth.ts`, `current-organization.ts`, `migration-state.ts`) to align with the organization plugin abstraction, removing redundant defaults and tightening type safety.
+- **Migration cleanup**: Dropped obsolete migration files and journal entries related to legacy team-id assumptions, streamlining the database migration history.
+
+---
+
+## v0.4.2
+
+### Fixes
+
+- Fixed build failures in privilege management pages (roles, users, and the main privileges view).
+- Hidden the **Monitoring** and **Privileges** sections in the UI for PostgreSQL connections, where these features are not supported.
+
+### Internal
+
+- Updated package versions and release metadata for v0.4.1.
+
+---
+
+## v0.4.1
+
+- **UI Consistency**: Hidden the Monitoring and Privileges sections in the navigation sidebar and page layouts when connected to a PostgreSQL database, aligning behavior with backend support limitations.
+- **Code Cleanup**: Removed redundant connection-readiness checks and related UI scaffolding for PostgreSQL connections across monitoring and privileges pages.
+
+---
+
+## v0.4.0
+
+### Features
+
+- **PostgreSQL support added**: Basic connection, metadata discovery, table info, and schema browsing now available for PostgreSQL databases.
+- **New Explorer interface launched**: A unified, driver-aware database explorer replaces the legacy catalog view, supporting PostgreSQL and ClickHouse with database, schema, table, view, materialized view, function, and extension browsing.
+- **PostgreSQL-specific table insights**: Added PostgreSQL statistics cards for index usage, table size, and vacuum status in the table browser.
+
+### Improvements
+
+- **SQL Console Sidebar enhanced**: Refactored to better support multi-database connections, with improved i18n, fixed reload issues when switching connections, and updated scroll and styling.
+- **Schema Sidebar extended**: Now supports PostgreSQL and includes updated UI styles and consistent internationalization.
+- **Table Browser modernized**: Refactored to be driver-aware, moved data preview logic into drivers, and improved tab organization and responsiveness.
+
+### Fixes
+
+- Fixed duplicate suggestion insertion in SQL editor.
+- Fixed missing schema auto-suggestions in SQL editor.
+- Fixed i18n key mismatches in catalog and explorer summary components.
+- Fixed data not displaying in explorer sidebar object lists (e.g., functions, schema objects).
+- Fixed active state highlighting in the explorer and app sidebars.
+
+### Internal
+
+- Legacy `catalog/` folder and unused `data-explorer/` modules removed.
+- Explorer architecture refactored to object-centric, driver-agnostic core with dedicated view registry and store.
+- Package dependencies cleaned up and outdated files deleted across web and Electron apps.

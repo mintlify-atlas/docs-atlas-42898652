@@ -1,0 +1,116 @@
+---
+title: 'Docker deployment'
+description: 'Deploy Dory as a Docker container on your own infrastructure.'
+---
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed and running
+- An API key for your chosen AI provider (required for Copilot features)
+
+## Run the container
+
+Copy and run the following command to start Dory. The secret keys are generated inline.
+
+```bash
+docker run -d --name dory \
+  -p 3000:3000 \
+  -e DS_SECRET_KEY="$(openssl rand -base64 32 | tr -d '\n')" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  -e DORY_AI_PROVIDER=openai \
+  -e DORY_AI_MODEL=gpt-4o-mini \
+  -e DORY_AI_API_KEY=your_api_key_here \
+  -e DORY_AI_URL=https://api.openai.com/v1 \
+  dorylab/dory:latest
+```
+
+Once running, open [http://localhost:3000](http://localhost:3000) in your browser.
+
+<Note>
+  The official Docker image sets `DORY_RUNTIME=docker` and `NEXT_PUBLIC_DORY_RUNTIME=docker` automatically. You do not need to pass these manually.
+</Note>
+
+## Environment variables
+
+### Required
+
+| Variable | Description |
+|---|---|
+| `DS_SECRET_KEY` | Encrypts stored sensitive data such as connection passwords. Generate with: `openssl rand -base64 32` |
+| `BETTER_AUTH_SECRET` | Secret used by the authentication layer. Generate with: `openssl rand -hex 32` |
+| `BETTER_AUTH_URL` | The public URL of your Dory instance. Use `http://localhost:3000` for local deployments. |
+
+### AI provider
+
+All four variables below are required together to enable AI Copilot features. If omitted, Copilot is disabled.
+
+| Variable | Description |
+|---|---|
+| `DORY_AI_PROVIDER` | AI provider to use. See supported providers below. |
+| `DORY_AI_MODEL` | Model name for the selected provider (e.g. `gpt-4o-mini`). |
+| `DORY_AI_API_KEY` | API key for the selected provider. |
+| `DORY_AI_URL` | Base API URL for the provider (e.g. `https://api.openai.com/v1`). |
+
+#### Supported AI providers
+
+| Provider | `DORY_AI_PROVIDER` value | Description |
+|---|---|---|
+| OpenAI | `openai` | Default provider. Uses the official OpenAI API. |
+| OpenAI-compatible | `openai-compatible` | Any service exposing an OpenAI-compatible API. |
+| Anthropic | `anthropic` | Claude models via the Anthropic API. |
+| Google | `google` | Gemini models via Google Generative AI API. |
+| Qwen (Alibaba) | `qwen` | Qwen models via DashScope OpenAI-compatible endpoint. |
+| xAI | `xai` | Grok models via xAI API. |
+
+### Optional
+
+| Variable | Default | Description |
+|---|---|---|
+| `DB_TYPE` | `pglite` | Application storage backend. `pglite` (embedded) or `postgres`. |
+| `PGLITE_DB_PATH` | `/data/dory` | Storage path for the embedded PGLite database. |
+| `DATABASE_URL` | — | PostgreSQL connection string. Required when `DB_TYPE=postgres`. |
+| `RESEND_API_KEY` | — | Required only if enabling email verification or invitations. |
+| `GITHUB_CLIENT_ID` | — | Required only if enabling GitHub OAuth login. |
+| `GITHUB_CLIENT_SECRET` | — | Required only if enabling GitHub OAuth login. |
+| `BETTER_AUTH_API_KEY` | — | Enables Better Auth audit logs and Sentinel-backed security protections. |
+| `TRUSTED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Comma-separated list of trusted origins for CORS and auth. |
+| `CONNECTION_REQUEST_TIMEOUT_MS` | `20000` | Timeout in milliseconds for connection and test requests. |
+| `QUERY_REQUEST_TIMEOUT_MS` | `120000` | Timeout in milliseconds for regular database queries. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | — | PostHog project API key for analytics. |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://us.i.posthog.com` | PostHog ingestion host. |
+| `NEXT_PUBLIC_DORY_CLOUD_API_URL` | — | Remote Dory Cloud API endpoint (e.g. `https://app.getdory.dev/api`). |
+
+<Warning>
+  For any deployment beyond local personal use, generate fresh values for `DS_SECRET_KEY` and `BETTER_AUTH_SECRET` rather than using the defaults from `.env.example`. Store these secrets securely and do not commit them to version control.
+</Warning>
+
+## Generating secret keys
+
+```bash
+# DS_SECRET_KEY
+openssl rand -base64 32
+
+# BETTER_AUTH_SECRET
+openssl rand -hex 32
+```
+
+## Persistent data
+
+By default, Dory uses the embedded PGLite database stored at `/data/dory` inside the container. To persist data across container restarts, mount a volume:
+
+```bash
+docker run -d --name dory \
+  -p 3000:3000 \
+  -v dory-data:/data/dory \
+  -e DS_SECRET_KEY="$(openssl rand -base64 32 | tr -d '\n')" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  -e DORY_AI_PROVIDER=openai \
+  -e DORY_AI_MODEL=gpt-4o-mini \
+  -e DORY_AI_API_KEY=your_api_key_here \
+  -e DORY_AI_URL=https://api.openai.com/v1 \
+  dorylab/dory:latest
+```
+
+For the full list of environment variables and advanced configuration, see the [Environment variables reference](/configuration/environment-variables).

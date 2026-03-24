@@ -1,0 +1,114 @@
+---
+title: "AI providers"
+description: "Configure Dory to use OpenAI, Anthropic, Google, xAI, Qwen, or any OpenAI-compatible provider."
+---
+
+Dory uses a pluggable AI provider architecture. You switch between model vendors by changing environment variables — no code changes required. The AI layer powers the SQL Copilot, the database chatbot, and schema-aware features.
+
+<Note>
+If `DORY_AI_API_KEY` is not set, all AI features are disabled. The rest of Dory (SQL editor, schema explorer, query execution) works normally.
+</Note>
+
+## Supported providers
+
+| Provider | `DORY_AI_PROVIDER` value | Description |
+|---|---|---|
+| OpenAI | `openai` | Default. Uses the official OpenAI API. |
+| OpenAI-compatible | `openai-compatible` | Any service that exposes an OpenAI-compatible API. |
+| Anthropic | `anthropic` | Claude models via the Anthropic official API. |
+| Google | `google` | Gemini models via the Google Generative AI API. |
+| Qwen (Alibaba) | `qwen` | Qwen models via the DashScope OpenAI-compatible endpoint. |
+| xAI | `xai` | Grok models via the xAI API. |
+
+---
+
+## Configuration
+
+Four environment variables control the AI provider:
+
+| Variable | Purpose |
+|---|---|
+| `DORY_AI_PROVIDER` | Which provider to use |
+| `DORY_AI_MODEL` | Which model to request |
+| `DORY_AI_API_KEY` | API key for the provider |
+| `DORY_AI_URL` | Base API URL (override for compatible endpoints) |
+
+---
+
+## Provider examples
+
+<CodeGroup>
+
+```bash OpenAI
+DORY_AI_PROVIDER=openai
+DORY_AI_MODEL=gpt-4o-mini
+DORY_AI_API_KEY=sk-...
+DORY_AI_URL=https://api.openai.com/v1
+```
+
+```bash Anthropic
+DORY_AI_PROVIDER=anthropic
+DORY_AI_MODEL=claude-3-5-sonnet-20241022
+DORY_AI_API_KEY=sk-ant-...
+```
+
+```bash Google Gemini
+DORY_AI_PROVIDER=google
+DORY_AI_MODEL=gemini-1.5-flash
+DORY_AI_API_KEY=AIza...
+```
+
+```bash xAI Grok
+DORY_AI_PROVIDER=xai
+DORY_AI_MODEL=grok-2-latest
+DORY_AI_API_KEY=xai-...
+```
+
+```bash Qwen
+DORY_AI_PROVIDER=qwen
+DORY_AI_MODEL=qwen-plus
+DORY_AI_API_KEY=sk-...
+```
+
+</CodeGroup>
+
+---
+
+## OpenAI-compatible providers
+
+Set `DORY_AI_PROVIDER=openai-compatible` and point `DORY_AI_URL` at any API that speaks the OpenAI chat completions format.
+
+<CodeGroup>
+
+```bash Ollama (local)
+DORY_AI_PROVIDER=openai-compatible
+DORY_AI_MODEL=llama3.2
+DORY_AI_URL=http://localhost:11434/v1
+DORY_AI_API_KEY=ollama
+```
+
+```bash Azure OpenAI
+DORY_AI_PROVIDER=openai-compatible
+DORY_AI_MODEL=gpt-4o-mini
+DORY_AI_URL=https://<your-resource>.openai.azure.com/openai/deployments/<deployment>
+DORY_AI_API_KEY=<azure-api-key>
+```
+
+</CodeGroup>
+
+<Tip>
+When using Ollama, make sure the Ollama server is reachable from your Dory container. If running both with Docker Compose, use the service name as the hostname instead of `localhost`.
+</Tip>
+
+---
+
+## Disabling AI features
+
+Leave `DORY_AI_API_KEY` unset (or empty) to disable all AI-powered features. The SQL editor, schema explorer, and query execution continue to work normally.
+
+```bash
+# AI features disabled — Copilot and chat will not be available
+DORY_AI_PROVIDER=openai
+DORY_AI_MODEL=gpt-4o-mini
+DORY_AI_API_KEY=
+```

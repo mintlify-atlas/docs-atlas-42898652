@@ -1,0 +1,83 @@
+---
+title: "Trusted origins"
+description: "Configure allowed origins for CSRF protection and cross-origin requests."
+---
+
+Dory uses Better Auth's trusted origins list to validate CSRF tokens and allow cross-origin requests. Any origin not on the list will be rejected when making authenticated requests.
+
+## TRUSTED_ORIGINS
+
+`TRUSTED_ORIGINS` is a comma-separated list of origins that Dory accepts requests from.
+
+```bash
+TRUSTED_ORIGINS=https://dory.example.com,https://dory-staging.example.com
+```
+
+The value is split on commas and each entry is trimmed of whitespace before being added to the allow list.
+
+## Built-in defaults
+
+The following origins are always trusted regardless of `TRUSTED_ORIGINS`:
+
+- `http://127.0.0.1:*` — all ports on loopback IPv4
+- `http://localhost:*` — all ports on localhost
+- `dory://` — the Electron desktop app's custom protocol
+
+These are hard-coded in the auth configuration and cannot be removed.
+
+## Local development
+
+The default value in `.env.example` covers standard local development:
+
+```bash
+TRUSTED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+You do not need to change this for local use.
+
+## Production setup
+
+Set `TRUSTED_ORIGINS` to the exact origin of your deployment. The origin is the scheme, hostname, and port (if non-standard).
+
+<Tabs>
+  <Tab title="Single domain">
+    ```bash
+    TRUSTED_ORIGINS=https://dory.example.com
+    ```
+  </Tab>
+  <Tab title="Multiple domains">
+    ```bash
+    TRUSTED_ORIGINS=https://dory.example.com,https://dory-staging.example.com
+    ```
+  </Tab>
+  <Tab title="Custom port">
+    ```bash
+    TRUSTED_ORIGINS=http://dory.internal:8080
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+  Do not use wildcard origins in production (e.g., `https://*.example.com`). Better Auth does not support wildcard matching in `TRUSTED_ORIGINS` — list each origin explicitly.
+</Warning>
+
+## Common misconfiguration issues
+
+**"Invalid origin" or CSRF errors after login**
+
+The origin in the browser's request does not match any entry in `TRUSTED_ORIGINS`. Check:
+- Is the scheme correct? (`http` vs `https`)
+- Is the port included if non-standard? (`https://dory.example.com:8443` is different from `https://dory.example.com`)
+- Does `BETTER_AUTH_URL` match `TRUSTED_ORIGINS`? They should point to the same origin.
+
+**OAuth callback fails**
+
+If you are using GitHub OAuth and callbacks fail, confirm that `BETTER_AUTH_URL` is set to the same origin listed in `TRUSTED_ORIGINS` and that the GitHub OAuth app's callback URL matches.
+
+**Requests work locally but fail in production**
+
+The container may still be using the default `http://localhost:3000` value. Set `TRUSTED_ORIGINS` explicitly in your production environment configuration and restart the container.
+
+```bash
+docker stop dory && docker start dory
+```

@@ -1,0 +1,126 @@
+---
+title: "Database storage"
+description: "Configure Dory's internal storage — choose between embedded PGLite or external PostgreSQL."
+---
+
+Dory uses an internal database to persist its own application data: connection configurations, saved queries, chat history, user accounts, and organization memberships. This is separate from the databases you connect to and query through Dory.
+
+Two storage backends are supported:
+
+<CardGroup cols={2}>
+  <Card title="PGLite" icon="database">
+    Embedded, zero-config. Data lives on the local filesystem. Best for single-user and small team deployments.
+  </Card>
+  <Card title="PostgreSQL" icon="server">
+    External database. Required for multi-user production deployments that need high availability or shared storage.
+  </Card>
+</CardGroup>
+
+---
+
+## PGLite (default)
+
+PGLite is an embedded PostgreSQL-compatible database that runs inside the Dory process. No external database is required.
+
+```bash
+DB_TYPE=pglite
+PGLITE_DB_PATH=/data/dory
+```
+
+`PGLITE_DB_PATH` is the directory where PGLite writes its data files. The default value `/data/dory` matches the volume path used by the official Docker image.
+
+### Docker volume mounting
+
+When running with Docker, always mount `PGLITE_DB_PATH` as a named volume or bind mount to persist data across container restarts:
+
+```bash
+docker run -d --name dory \
+  -p 3000:3000 \
+  -v dory-data:/data/dory \
+  -e DB_TYPE=pglite \
+  -e PGLITE_DB_PATH=/data/dory \
+  dorylab/dory:latest
+```
+
+<Warning>
+Without a volume mount, all Dory data is lost when the container is removed or recreated.
+</Warning>
+
+### When to use PGLite
+
+- Single-user local or self-hosted deployment
+- Small teams running a single Dory instance
+- Quick evaluation or testing
+- Desktop app (PGLite is always used in the Electron runtime)
+
+---
+
+## PostgreSQL
+
+To use an external PostgreSQL database, set `DB_TYPE=postgres` and provide a connection string via `DATABASE_URL`.
+
+```bash
+DB_TYPE=postgres
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+```
+
+<Steps>
+  <Step title="Create a database">
+    Create a dedicated PostgreSQL database for Dory:
+    ```sql
+    CREATE DATABASE dory;
+    CREATE USER dory_user WITH PASSWORD 'your-password';
+    GRANT ALL PRIVILEGES ON DATABASE dory TO dory_user;
+    ```
+  </Step>
+  <Step title="Set environment variables">
+    ```bash
+    DB_TYPE=postgres
+    DATABASE_URL=postgresql://dory_user:your-password@your-db-host:5432/dory
+    ```
+  </Step>
+  <Step title="Start Dory">
+    Dory runs database migrations automatically on startup. No manual migration step is required.
+  </Step>
+</Steps>
+
+### When to use PostgreSQL
+
+- Multi-user production deployments
+- High availability setups (multiple Dory instances behind a load balancer)
+- Environments where you already manage a PostgreSQL cluster
+- When you want database-level backups and point-in-time recovery
+
+---
+
+## Choosing a backend
+
+| | PGLite | PostgreSQL |
+|---|---|---|
+| Setup | Zero-config | Requires external DB |
+| Persistence | Filesystem volume | External DB |
+| Multi-instance | No | Yes |
+| Backup | Volume snapshot | Standard PostgreSQL backup |
+| Use case | Single-user, small teams | Multi-user production |
+
+---
+
+## Backing up PGLite data
+
+PGLite stores all data as files under `PGLITE_DB_PATH`. Back up this directory using any standard file backup tool or by snapshotting the Docker volume.
+
+```bash
+# Copy the data directory to a backup location
+docker run --rm \
+  -v dory-data:/data/dory \
+  -v $(pwd)/backup:/backup \
+  alpine tar czf /backup/dory-backup-$(date +%Y%m%d).tar.gz -C /data/dory .
+```
+
+---
+
+## Migrating between backends
+
+<Warning>
+Migrating data between PGLite and PostgreSQL is not currently supported. If you need to switch backends, plan to start with a fresh database. Connection configurations can be re-added manually after switching.
+</Warning>

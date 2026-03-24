@@ -1,0 +1,150 @@
+---
+title: "Query visualization"
+description: "Instantly visualize query results with built-in charts — no BI tool required."
+---
+
+Query visualization is built directly into the SQL editor result pane. After running any query, switch to the **Charts** view to produce an interactive chart from the result set — no external BI tool or export required.
+
+## Overview
+
+Every query result in Dory has two views: **Table** and **Charts**. Toggle between them using the view switcher at the top of the result pane.
+
+When you switch to Charts, Dory automatically selects a chart type and axis configuration based on the column types in your result set:
+
+- Time fields are preferred for the X axis
+- Numeric fields are assigned to the Y axis
+- Category fields are used for grouping
+
+You can override any of these choices manually using the chart control bar.
+
+## Supported chart types
+
+| Chart type | Best for |
+|------------|----------|
+| **Bar** | Comparing values across categories |
+| **Line** | Trends over time or ordered sequences |
+| **Area** | Cumulative trends, stacked series |
+| **Pie** | Part-to-whole proportions |
+| **Scatter plot** | Correlation between two numeric fields |
+| **Histogram** | Distribution of a numeric field |
+| **Heatmap** | Density across two categorical or temporal dimensions |
+
+## Switching between table and chart view
+
+<Steps>
+  <Step title="Run a query">
+    Execute any SELECT query in the SQL editor. Results appear in the result pane.
+  </Step>
+  <Step title="Click Charts">
+    Click the **Charts** tab in the view switcher at the top of the result pane (next to **Table**).
+  </Step>
+  <Step title="Review the auto-generated chart">
+    Dory renders an initial chart using inferred axis assignments. The chart type and axis fields are shown in the control bar above the chart.
+  </Step>
+</Steps>
+
+## Configuring axes and series
+
+The chart control bar gives you full control over the chart configuration.
+
+### Chart type
+
+Use the **Chart** dropdown to switch between Bar, Line, Pie, Scatter Plot, Histogram, and Heatmap.
+
+### X axis
+
+The **X** combobox lets you select any column from the result set as the X axis. Search by column name if the result set has many columns.
+
+### Y axis (metric)
+
+The **Y** combobox opens a two-pane selector:
+
+- **Left pane** — standalone aggregations (Count) and individual columns
+- **Right pane** — aggregation method for the selected column: Sum, Avg, Min, Max, Count Distinct, Count True
+
+For example, to chart the sum of the `revenue` column, select `revenue` in the left pane, then **Sum** in the right pane.
+
+### Group by
+
+For Bar, Line, and Heatmap charts, the **Group** combobox adds a series grouping. Each distinct value of the selected column becomes a separate series in the chart.
+
+### Color palette
+
+Click the **Settings** icon (gear) in the top-right of the chart control bar to open chart settings. Choose from multiple color presets.
+
+### Timeline slider
+
+For Bar, Line, and Histogram charts, chart settings also include an **Enable timeline slider** toggle. When enabled, a DataZoom control appears below the chart, letting you zoom into a time range and apply it as a filter back to the result table.
+
+## Exporting charts
+
+Click the **Download** icon in the chart control bar to export the chart:
+
+- **Copy PNG** — copies the chart as an image to your clipboard
+- **PNG** — downloads the chart as a PNG file
+- **SVG** — downloads the chart as an SVG file
+
+To reset the chart to its auto-inferred configuration, click the **Reset** (rotate-left) icon.
+
+## Multi-result chart view
+
+When a query produces multiple result sets (for example, multiple SELECT statements in one run), each result set has its own independent chart configuration. Switching between result set tabs in the result pane updates the chart to show that result's data and its saved axis configuration.
+
+## Use cases
+
+<AccordionGroup>
+  <Accordion title="Time-series data">
+    Query event counts or metrics grouped by time bucket, then switch to a Line chart. Set the time column as X and the count/metric as Y. Enable the timeline slider to zoom into specific time windows.
+
+    ```sql
+    SELECT
+        toStartOfHour(occurred_at) AS hour,
+        count() AS events
+    FROM events
+    WHERE occurred_at >= now() - INTERVAL 7 DAY
+    GROUP BY hour
+    ORDER BY hour
+    ```
+  </Accordion>
+  <Accordion title="Aggregations and comparisons">
+    Compare a metric across categories using a Bar chart. Use the Group field to break down by a second dimension (for example, platform or region).
+
+    ```sql
+    SELECT
+        platform,
+        date_trunc('day', created_at) AS day,
+        count(distinct user_id) AS dau
+    FROM user_sessions
+    GROUP BY platform, day
+    ORDER BY day
+    ```
+  </Accordion>
+  <Accordion title="Distributions">
+    Use a Histogram to visualize the distribution of a numeric field like query latency or response size.
+
+    ```sql
+    SELECT query_duration_ms
+    FROM system.query_log
+    WHERE event_date = today()
+      AND query_duration_ms > 0
+    LIMIT 10000
+    ```
+  </Accordion>
+  <Accordion title="Part-to-whole proportions">
+    Use a Pie chart to show how a total breaks down by category. Set the category column as the group and a numeric column as the value.
+
+    ```sql
+    SELECT
+        event_type,
+        count() AS total
+    FROM events
+    WHERE created_at >= today() - 30
+    GROUP BY event_type
+    ORDER BY total DESC
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Chart configuration is persisted per result set within a session. If you switch to the Table view and back to Charts, your axis selections are retained.
+</Tip>

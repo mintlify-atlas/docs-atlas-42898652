@@ -1,0 +1,150 @@
+---
+title: "Authentication"
+description: "Configure authentication for your Dory deployment — local accounts, OAuth, and email verification."
+---
+
+Dory uses [Better Auth](https://better-auth.com) for authentication. By default, users sign up and log in with an email address and password. GitHub OAuth and email verification via Resend are available as optional additions.
+
+---
+
+## Core settings
+
+Two variables are required for auth to function:
+
+<ParamField query="BETTER_AUTH_SECRET" type="string" required>
+  Signs sessions, tokens, and cookies. Must be a long random string. The `.env.example` file ships a default value — replace it before any production or multi-user deployment.
+</ParamField>
+
+<ParamField query="BETTER_AUTH_URL" type="string" required>
+  The public base URL of your Dory instance. Better Auth uses this to construct links in verification and invitation emails, and to validate redirect URLs. Set this to the URL your users access, for example `https://dory.yourcompany.com`.
+</ParamField>
+
+<Warning>
+Using the default `BETTER_AUTH_SECRET` from `.env.example` in a shared or internet-facing deployment is a security risk. Anyone who knows the default secret can forge session tokens.
+</Warning>
+
+### Generating secrets
+
+```bash
+# Generate BETTER_AUTH_SECRET
+openssl rand -hex 32
+
+# Generate DS_SECRET_KEY (for connection encryption)
+openssl rand -base64 32
+```
+
+---
+
+## Local username and password auth
+
+Email and password authentication is enabled by default. Users register with an email address, receive a verification email, and then sign in with their credentials.
+
+Email verification is required before a new account can be used. To send verification emails you must configure a `RESEND_API_KEY` (see [Email verification](#email-verification) below).
+
+```bash
+BETTER_AUTH_SECRET=<generated-secret>
+BETTER_AUTH_URL=https://dory.yourcompany.com
+RESEND_API_KEY=re_...
+```
+
+---
+
+## GitHub OAuth
+
+To allow users to sign in with GitHub, create an OAuth application in your GitHub account and add the credentials to your environment.
+
+<Steps>
+  <Step title="Create a GitHub OAuth app">
+    Go to **GitHub → Settings → Developer settings → OAuth Apps → New OAuth App**.
+
+    Set the **Authorization callback URL** to:
+    ```
+    https://dory.yourcompany.com/api/auth/callback/github
+    ```
+  </Step>
+  <Step title="Copy the credentials">
+    Copy the **Client ID** and generate a **Client secret** in the GitHub OAuth app settings.
+  </Step>
+  <Step title="Add to your environment">
+    ```bash
+    GITHUB_CLIENT_ID=Ov23li...
+    GITHUB_CLIENT_SECRET=<your-github-client-secret>
+    ```
+  </Step>
+</Steps>
+
+<Note>
+GitHub OAuth accounts are treated as having a verified email address. The default organization for a new GitHub user is created immediately on first login, without a separate email verification step.
+</Note>
+
+---
+
+## Email verification
+
+Dory sends transactional emails through [Resend](https://resend.com): account verification on sign-up, password reset links, and organization invitation emails.
+
+<Steps>
+  <Step title="Create a Resend account">
+    Sign up at [resend.com](https://resend.com) and verify your sending domain.
+  </Step>
+  <Step title="Create an API key">
+    Go to **Resend → API Keys → Create API key**.
+  </Step>
+  <Step title="Add to your environment">
+    ```bash
+    RESEND_API_KEY=re_...
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+If `RESEND_API_KEY` is not set, Dory cannot send verification emails. New email+password signups will not receive a verification email and will be unable to complete registration.
+</Warning>
+
+---
+
+## Single-user Docker mode
+
+For local Docker usage with a single user, authentication complexity can be reduced:
+
+- The default `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL=http://localhost:3000` values from `.env.example` work as-is.
+- You do not need GitHub OAuth or Resend.
+- The `DORY_RUNTIME=docker` value set by the official Docker image disables billing-related UI.
+
+```bash
+docker run -d --name dory \
+  -p 3000:3000 \
+  -e DS_SECRET_KEY="$(openssl rand -base64 32 | tr -d '\n')" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  dorylab/dory:latest
+```
+
+<Tip>
+Even for local use, generate fresh `DS_SECRET_KEY` and `BETTER_AUTH_SECRET` values so that your encryption keys are unique.
+</Tip>
+
+---
+
+## Better Auth Infra (Sentinel & Dash)
+
+Better Auth Sentinel adds security protections including credential stuffing detection, impossible travel detection, and bot blocking. Better Auth Dash provides audit logs.
+
+To enable these, obtain an API key from the [Better Auth Dashboard](https://dash.better-auth.com) and set:
+
+```bash
+BETTER_AUTH_API_KEY=<your-better-auth-api-key>
+# Optional: override default endpoints
+BETTER_AUTH_API_URL=
+BETTER_AUTH_KV_URL=
+```
+
+---
+
+## Trusted origins
+
+`TRUSTED_ORIGINS` controls which origins are allowed to make authenticated requests to the Dory API. Add your production domain alongside the defaults:
+
+```bash
+TRUSTED_ORIGINS=https://dory.yourcompany.com,http://localhost:3000
+```

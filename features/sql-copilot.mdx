@@ -1,0 +1,144 @@
+---
+title: "SQL Copilot"
+description: "AI assistant grounded in your real database schema — generate, fix, and explain SQL using natural language."
+---
+
+SQL Copilot is an AI assistant embedded directly in the SQL editor. Unlike generic code completion, Copilot is grounded in your actual database schema: it knows the tables, columns, types, and relationships in your connected database before it writes a single character of SQL.
+
+## How the Copilot works
+
+When you open the Copilot panel, Dory builds a **context envelope** for the active tab. This envelope includes:
+
+- The current SQL text in the editor
+- Any highlighted selection
+- The inferred tables referenced in the query
+- The active database and dialect (ClickHouse, PostgreSQL, etc.)
+- Real column names and types fetched from the live schema
+
+This context is sent to the AI model alongside your request, so the model generates SQL that is valid against your actual schema — not hallucinated column names.
+
+<Note>
+The Copilot only reads your schema metadata (table names, column names, types, comments). It does not read row-level data.
+</Note>
+
+## Opening the Copilot
+
+Click the **Copilot** button in the top navigation bar of the SQL editor. The panel opens as a resizable split alongside the editor. Close it with the **×** button inside the panel or by clicking the Copilot button again.
+
+The Copilot panel is only active on SQL tabs. Switching to a different tab type (for example, a table explorer tab) shows a message that the Copilot is not available for that tab type.
+
+## Three modes
+
+The Copilot panel has three sub-tabs: **Ask**, **Action**, and **Context**.
+
+<Tabs>
+  <Tab title="Ask">
+    **Ask** is a conversational interface. Type a question or instruction in natural language and the AI generates or refines SQL for the current tab.
+
+    The Ask tab uses the full context envelope — current SQL, inferred tables, schema — so follow-up messages can reference what was said or written before.
+
+    When an Action result has been applied to the editor, Ask shows an **Applied** banner so you can see what changed and navigate back to the Action tab if needed.
+
+    **Example prompts:**
+
+    ```text
+    Show me the top 10 users by event count in the last 7 days
+    ```
+
+    ```text
+    Add a WHERE clause to filter only rows where status = 'active'
+    ```
+
+    ```text
+    Rewrite this query using a CTE instead of a subquery
+    ```
+  </Tab>
+  <Tab title="Action">
+    **Action** provides one-click quick actions that operate on the SQL from the last executed query. Actions are schema-aware and dialect-specific.
+
+    | Action | Trigger condition | What it does |
+    |--------|-------------------|--------------|
+    | Fix SQL error | Query returned an error | Makes the minimal change required for the query to run, without unnecessary rewrites |
+    | Optimize performance | Any SQL present | Suggests performance improvements for the current query and dialect |
+    | Rewrite SQL | Any SQL present | Rewrites for clarity and maintainability while keeping results equivalent |
+    | Convert to aggregation | Any SQL present | Restructures the query into an aggregation (GROUP BY) form |
+
+    Each action result includes:
+    - A **title** summarising the change
+    - An **explanation** of what was changed and why
+    - The **updated SQL**
+    - A **risk level** (`low`, `medium`, or `high`) indicating how confident the AI is in the change
+
+    Clicking **Apply** patches the updated SQL into the editor. The editor supports undo, so you can press **Cmd/Ctrl + Z** to revert.
+
+    <Warning>
+    Actions with `high` risk mean the AI could not determine a safe fix. Review these carefully before applying.
+    </Warning>
+
+    **Fix SQL error** is surfaced automatically when the previous query run returned an error. The error message and code are included in the prompt so the AI can diagnose the cause.
+  </Tab>
+  <Tab title="Context">
+    **Context** shows what the Copilot currently knows about the active tab. Use it to verify that the AI is using the right schema before generating complex queries.
+
+    The Context tab displays:
+    - The full SQL text from the editor
+    - The highlighted selection (if any)
+    - The database and schema inferred from the query
+    - The tables the AI has identified in the query
+    - The confidence level of the table inference
+
+    For table-explorer tabs, it also shows row count and primary key information.
+  </Tab>
+</Tabs>
+
+## Example: generating SQL from natural language
+
+<Steps>
+  <Step title="Open the Copilot panel">
+    Click **Copilot** in the SQL editor navigation. The panel opens to the right of the editor.
+  </Step>
+  <Step title="Switch to the Ask tab">
+    The Ask tab is active by default.
+  </Step>
+  <Step title="Type your question">
+    Describe what you want in plain language:
+
+    ```text
+    Give me a query that shows daily active users for the past 30 days,
+    grouped by day and broken down by platform
+    ```
+  </Step>
+  <Step title="Review and apply the generated SQL">
+    The AI returns a SQL query with an explanation. Click **Apply to editor** or **Open in new tab** to use it.
+  </Step>
+</Steps>
+
+## Example: fixing a SQL error
+
+<Steps>
+  <Step title="Run a query that returns an error">
+    The result pane shows the error message returned by the database.
+  </Step>
+  <Step title="Open the Action tab">
+    The **Fix SQL error** action is highlighted automatically because an error was detected.
+  </Step>
+  <Step title="Run the fix action">
+    Click **Fix SQL error**. The AI reads the error message and the original SQL, then returns a corrected version with an explanation.
+  </Step>
+  <Step title="Apply the fix">
+    Click **Apply** to patch the corrected SQL back into the editor. Run the query again to confirm.
+  </Step>
+</Steps>
+
+## Supported AI providers
+
+Copilot uses whichever AI provider is configured for your Dory instance. See [AI providers](/configuration/ai-providers) for setup instructions.
+
+Supported providers include OpenAI, Anthropic, Google Gemini, xAI Grok, Qwen, and any OpenAI-compatible endpoint. The model is configured at the instance level via environment variables — no per-user configuration is required.
+
+## Tips for best results
+
+- **Include table references before asking.** If your editor already has `FROM my_table`, the Copilot will use the real column names from that table. Starting from an empty editor gives the AI less schema context to work with.
+- **Be specific about filters and time ranges.** Instead of "show me recent events", say "show me events from the last 24 hours using the `created_at` column".
+- **Use the Context tab to verify schema.** If the AI generates a query with wrong column names, check the Context tab to see which tables were inferred and whether the schema was loaded correctly.
+- **For complex rewrites, prefer Action over Ask.** The Rewrite SQL action is specifically prompted to preserve result equivalence. Ask is better for generating new queries from scratch.

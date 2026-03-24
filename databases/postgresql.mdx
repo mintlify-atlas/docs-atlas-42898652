@@ -1,0 +1,131 @@
+---
+title: "PostgreSQL"
+description: "Connect Dory to PostgreSQL databases for AI-assisted querying and schema exploration."
+---
+
+<Note>
+  PostgreSQL support is currently in **beta**. Core features are stable and usable, but some rough edges may remain. Please [report issues](https://github.com/dorylab/dory/issues) if you encounter them.
+</Note>
+
+Dory connects to PostgreSQL using the standard `pg` client library with a connection pool. All of Dory's AI-assisted SQL tools — SQL Copilot, schema-aware autocomplete, database chatbot, and schema explorer — are available for PostgreSQL connections.
+
+## Connection setup
+
+<Steps>
+  <Step title="Open connection settings">
+    Navigate to **Connections** in the sidebar and click **Add connection**. Select **PostgreSQL** as the connection type.
+  </Step>
+  <Step title="Enter connection details">
+    Fill in the following fields:
+
+    | Field | Description | Default |
+    |-------|-------------|---------|
+    | **Host** | Hostname, IP address, or full `postgresql://` connection URL. | — |
+    | **Port** | TCP port your PostgreSQL server listens on. | `5432` |
+    | **Database** | The database to connect to. | `postgres` |
+    | **Username** | PostgreSQL user to authenticate as. | — |
+    | **Password** | Password for the user. | — |
+    | **SSL** | Enable SSL for the connection. | Off |
+
+    <Tip>
+      You can enter a full `postgresql://` connection URL in the **Host** field. Dory will parse the host, port, database, username, password, and SSL mode from it automatically.
+    </Tip>
+  </Step>
+  <Step title="Test and save">
+    Click **Test connection**. Dory will run `SELECT version()` to verify the connection. Save once the test passes.
+  </Step>
+</Steps>
+
+### SSL options
+
+Dory supports several SSL modes for PostgreSQL connections via the advanced options JSON field:
+
+```json
+{
+  "sslmode": "require"
+}
+```
+
+| `sslmode` value | Behavior |
+|-----------------|----------|
+| `disable` | SSL is not used. |
+| `require` | SSL is required; certificate is not verified (`rejectUnauthorized: false`). |
+| `verify-full` | SSL is required and the server certificate is verified. |
+
+Alternatively, enable the **SSL** toggle in the connection form to use `require` mode.
+
+You can also pass an SSL object directly:
+
+```json
+{
+  "ssl": {
+    "rejectUnauthorized": true,
+    "ca": "-----BEGIN CERTIFICATE-----\n..."
+  }
+}
+```
+
+### Advanced options
+
+The connection form accepts a JSON options object for additional PostgreSQL settings:
+
+```json
+{
+  "schema": "myschema",
+  "application_name": "dory",
+  "request_timeout": 30000,
+  "statement_timeout": 30000,
+  "connection_timeout": 20000
+}
+```
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `schema` | string | Default `search_path` for queries in this connection. |
+| `application_name` | string | Value sent as `application_name` in PostgreSQL sessions. Defaults to `dory`. |
+| `request_timeout` | number (ms) | Query timeout per request. |
+| `statement_timeout` | number (ms) | PostgreSQL `statement_timeout` — cancels queries that exceed the limit. |
+| `connection_timeout` | number (ms) | Pool connection acquisition timeout. Defaults to `20000`. |
+
+## Supported PostgreSQL versions
+
+Dory works with PostgreSQL 12 and later. The driver uses standard `pg` client queries with no version-specific extensions.
+
+<Note>
+  Managed PostgreSQL services (Amazon RDS, Google Cloud SQL, Azure Database for PostgreSQL, Supabase, Neon) are all supported. Use the appropriate host and SSL settings for your provider.
+</Note>
+
+## Available features
+
+The following Dory features are available for PostgreSQL connections:
+
+<CardGroup cols={2}>
+  <Card title="SQL editor" icon="code">
+    Multi-tab SQL workspace with schema-aware autocomplete, multiple result sets, and saved queries.
+  </Card>
+  <Card title="SQL Copilot" icon="wand-magic-sparkles">
+    Generate, fix, and explain SQL using natural language. The AI is grounded in your PostgreSQL schema.
+  </Card>
+  <Card title="Database chatbot" icon="comments">
+    Ask questions about your tables and data in plain language.
+  </Card>
+  <Card title="Schema explorer" icon="sitemap">
+    Browse databases, schemas, tables, views, and columns in the sidebar.
+  </Card>
+</CardGroup>
+
+## Features not available for PostgreSQL
+
+The following features are ClickHouse-specific and are not available for PostgreSQL connections:
+
+- **Monitoring dashboard** — reads from `system.query_log`, which is a ClickHouse system table
+- **Privilege management UI** — manages ClickHouse users, roles, and grants
+
+See [ClickHouse](/databases/clickhouse) for details on these features.
+
+## Limitations and considerations
+
+- **Connection pooling**: Dory maintains a pool of up to 10 connections per database. Queries that exceed the pool size will queue until a connection becomes available.
+- **Result size limit**: SELECT queries are capped at a maximum row count. Use `LIMIT` in your queries if you need to control the result size precisely.
+- **Query cancellation**: Dory cancels running queries using `pg_cancel_backend` on the backend PID. Cancellation is best-effort — the query may complete before the cancel reaches the server.
+- **Bigint and numeric types**: `BIGINT` (`int8`) and `NUMERIC` (`numeric`) columns are returned as strings to avoid JavaScript precision loss.

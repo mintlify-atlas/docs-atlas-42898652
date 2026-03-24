@@ -1,0 +1,86 @@
+---
+title: "Schema explorer"
+description: "Browse and inspect your database schema — tables, columns, indexes, and relationships."
+---
+
+The schema explorer lets you navigate your database structure visually. Browse databases, tables, and columns without writing any SQL, inspect column types and constraints, and preview sample data directly from the explorer.
+
+## Opening the schema explorer
+
+Click **Explorer** in the left sidebar for the current connection. The explorer opens with a tree navigation panel on the left and a detail view on the right.
+
+## Schema tree navigation
+
+The left panel shows a collapsible tree of your database objects:
+
+```
+└── my_database
+    ├── events
+    ├── users
+    ├── user_sessions
+    └── orders
+```
+
+Click a database node to expand it and list its tables. Click a table to open its detail view. The breadcrumb at the top of the detail view shows your current location in the schema hierarchy.
+
+## Viewing table details
+
+Selecting a table opens its detail view, which shows:
+
+### Columns
+
+A list of all columns in the table, with the following attributes for each:
+
+| Attribute | Description |
+|-----------|-------------|
+| Name | Column name |
+| Type | Data type (e.g. `String`, `UInt64`, `DateTime`) |
+| Default | Default expression or default kind if defined |
+| Primary key | Marked if the column is part of the primary key |
+| Comment | Column comment from the database metadata |
+
+### Constraints and indexes
+
+For supported databases, the detail view lists table-level constraints including primary keys and any defined indexes.
+
+### Table preview
+
+The explorer can load a sample of rows from the table so you can see real data without writing a query. Click **Preview data** to load a sample. The preview shows a read-only result grid with the first rows from the table.
+
+<Note>
+Table preview executes a `SELECT` query with a small row limit. No data is written or modified.
+</Note>
+
+## Searching the schema
+
+Use the search input at the top of the tree panel to filter tables by name. The tree updates as you type, showing only tables whose names match the search term.
+
+This is useful when your database has many tables and you want to jump directly to a specific one.
+
+## How schema information powers other features
+
+The schema explorer is not just a read-only viewer — the metadata it surfaces is used across the rest of Dory:
+
+<CardGroup cols={2}>
+  <Card title="Autocomplete" icon="keyboard">
+    When you write SQL in the editor, column and table suggestions come from the same live schema metadata that the explorer displays.
+  </Card>
+  <Card title="SQL Copilot" icon="sparkles">
+    The Copilot builds its schema context from the same metadata layer — table names, column names, types, and comments are all included in the prompt.
+  </Card>
+  <Card title="Database chat" icon="message-square">
+    Chat uses schema context to answer questions about your tables and generate accurate SQL. If a column has a comment in the database, the assistant uses it to explain what the field means.
+  </Card>
+  <Card title="Query visualization" icon="bar-chart">
+    Column names from schema metadata appear in the axis selectors when you configure a chart from query results.
+  </Card>
+</CardGroup>
+
+## Supported databases
+
+Schema metadata (tables, columns, types, primary keys, comments) is available for all supported databases. The level of detail varies by database engine:
+
+| Database | Tables | Columns | Types | Primary keys | Comments |
+|----------|--------|---------|-------|-------------|----------|
+| ClickHouse | Yes | Yes | Yes | Yes | Yes |
+| PostgreSQL | Yes | Yes | Yes | Yes | Yes |

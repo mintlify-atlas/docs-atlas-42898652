@@ -1,0 +1,78 @@
+---
+title: 'Desktop app'
+description: 'Download and run Dory as a native desktop application on macOS or Windows.'
+---
+
+## Download
+
+Download the latest release from GitHub:
+
+<CardGroup cols={2}>
+  <Card title="macOS (Apple Silicon)" icon="apple" href="https://github.com/dorylab/dory/releases">
+    For Macs with M1, M2, M3, or M4 chips.
+  </Card>
+  <Card title="macOS (Intel)" icon="apple" href="https://github.com/dorylab/dory/releases">
+    For Macs with Intel processors.
+  </Card>
+  <Card title="Windows" icon="windows" href="https://github.com/dorylab/dory/releases">
+    For Windows 10 and later.
+  </Card>
+</CardGroup>
+
+All releases are available at [github.com/dorylab/dory/releases](https://github.com/dorylab/dory/releases).
+
+## Install and launch
+
+<Tabs>
+  <Tab title="macOS">
+    <Steps>
+      <Step title="Open the downloaded file">
+        Open the `.dmg` file from your Downloads folder.
+      </Step>
+      <Step title="Move Dory to Applications">
+        Drag the Dory icon into your Applications folder.
+      </Step>
+      <Step title="Launch Dory">
+        Open Dory from Applications or Spotlight. On first launch, macOS may ask you to confirm opening an app from the internet — click **Open**.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Windows">
+    <Steps>
+      <Step title="Run the installer">
+        Open the downloaded `.exe` installer and follow the on-screen prompts.
+      </Step>
+      <Step title="Launch Dory">
+        Open Dory from the Start menu or desktop shortcut after installation completes.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## First launch
+
+When Dory opens for the first time, it will prompt you to add your first database connection. No account or server setup is required for personal use.
+
+<Tip>
+  You can also connect to remote databases from the desktop app — local installation does not restrict you to local databases only.
+</Tip>
+
+## How the desktop app differs from Docker
+
+| | Desktop app | Docker / web |
+|---|---|---|
+| Server required | No | Yes |
+| Data storage | Local device | Container volume or external Postgres |
+| Multi-user support | Single user | Supported |
+| AI Copilot | Requires AI provider config | Requires AI provider config |
+| Runtime | `desktop` | `docker` |
+
+The desktop app and the Docker image run the same underlying application (`apps/web`). The runtime mode is the primary difference — the desktop app automatically sets `DORY_RUNTIME=desktop` and `NEXT_PUBLIC_DORY_RUNTIME=desktop` at startup. You do not need to configure this manually.
+
+<Note>
+  The desktop app uses local storage on your device for application data, including saved queries and connection metadata. There is no separate server process to manage.
+</Note>
+
+## Connecting to remote databases
+
+The desktop app fully supports remote database connections. You can connect to any ClickHouse or PostgreSQL instance reachable from your machine, including cloud-hosted databases. Local installation only affects where Dory's own application data is stored, not which databases you can query.

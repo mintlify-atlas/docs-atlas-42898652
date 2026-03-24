@@ -1,0 +1,116 @@
+---
+title: "Storage configuration"
+description: "Configure how Dory stores application data — PGLite (default) or external PostgreSQL."
+---
+
+Dory uses an internal database to store users, sessions, saved queries, connection metadata, and organization data. Two backends are supported: embedded PGLite (default) and external PostgreSQL.
+
+## PGLite (default)
+
+PGLite is an embedded, file-based PostgreSQL implementation that runs inside the Dory process. It requires no external database service and is the recommended choice for single-server deployments.
+
+**Configuration:**
+
+```bash
+DB_TYPE=pglite
+PGLITE_DB_PATH=/data/dory
+```
+
+Both of these are the default values — you do not need to set them explicitly unless you want to change `PGLITE_DB_PATH`.
+
+### Volume mount for persistence
+
+PGLite writes its data to the path set by `PGLITE_DB_PATH`. In Docker, you must mount a host directory or named volume at this path, otherwise data is lost when the container is removed.
+
+<Tabs>
+  <Tab title="docker run">
+    ```bash
+    docker run -d --name dory \
+      -v /data/dory:/data/dory \
+      # ... other flags
+      dorylab/dory:latest
+    ```
+  </Tab>
+  <Tab title="Docker Compose">
+    ```yaml docker-compose.yml
+    services:
+      dory:
+        volumes:
+          - dory_data:/data/dory
+
+    volumes:
+      dory_data:
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+  Without a volume mount, all users, connections, and saved queries are deleted when the container stops or is removed.
+</Warning>
+
+### Backup strategy
+
+PGLite stores its data as files in `PGLITE_DB_PATH`. Back up these files using any standard file backup method:
+
+```bash
+# Stop the container before copying to ensure a consistent snapshot
+docker stop dory
+cp -r /data/dory /backups/dory-$(date +%Y%m%d-%H%M%S)
+docker start dory
+```
+
+Or with `tar`:
+
+```bash
+docker stop dory
+tar -czf /backups/dory-$(date +%Y%m%d-%H%M%S).tar.gz -C /data dory
+docker start dory
+```
+
+<Tip>
+  Schedule the backup script as a cron job to run daily. Keep at least 7 days of backups before rotating.
+</Tip>
+
+To restore from a backup:
+
+```bash
+docker stop dory
+rm -rf /data/dory
+cp -r /backups/dory-20260101-120000 /data/dory
+docker start dory
+```
+
+## External PostgreSQL
+
+For team deployments or high-availability setups, you can point Dory at an external PostgreSQL database instead of PGLite.
+
+**Configuration:**
+
+```bash
+DB_TYPE=postgres
+DATABASE_URL="postgresql://user:password@host:5432/dbname"
+```
+
+Dory runs migrations on startup via the bootstrap script, so the target database must exist but does not need any pre-created tables.
+
+<Note>
+  Dory is compatible with any PostgreSQL 14+ server, including managed services such as AWS RDS, Google Cloud SQL, Supabase, and Neon.
+</Note>
+
+### When to use external PostgreSQL
+
+| Scenario | Recommendation |
+|----------|---------------|
+| Single user, single server | PGLite (default) |
+| Small team, single server | PGLite with regular backups |
+| Multi-instance or load-balanced | External PostgreSQL required |
+| High availability requirements | External PostgreSQL with replication |
+| Managed backup via cloud provider | External PostgreSQL |
+
+<Warning>
+  Do not run multiple Dory containers pointing at the same PGLite path concurrently — PGLite is not designed for concurrent multi-process access. Use external PostgreSQL for multi-instance deployments.
+</Warning>
+
+## Changing backends
+
+Migrating from PGLite to PostgreSQL requires manually exporting and importing data. There is no automatic migration path between backends. Plan the switch before going to production if you anticipate needing PostgreSQL.

@@ -1,0 +1,119 @@
+---
+title: "Authentication setup"
+description: "Configure authentication for your self-hosted Dory instance."
+---
+
+Dory uses [Better Auth](https://www.better-auth.com) for authentication. The default configuration supports email and password login. GitHub OAuth and email verification with Resend are available as optional additions.
+
+## Required variables
+
+Two variables must be set for authentication to work correctly in production:
+
+<ParamField path="BETTER_AUTH_SECRET" type="string" required>
+  A secret random string used to sign and verify session tokens. Generate a secure value with:
+
+  ```bash
+  openssl rand -hex 32
+  ```
+
+  The `.env.example` file ships with a placeholder value. Replace it before exposing your instance to any network.
+</ParamField>
+
+<ParamField path="BETTER_AUTH_URL" type="string" required>
+  The public base URL of your Dory deployment. Better Auth uses this to construct OAuth callback URLs, invitation links, and password reset links.
+
+  Examples:
+  - Local: `http://localhost:3000`
+  - Production: `https://dory.example.com`
+
+  This must exactly match the URL users access in their browser. A mismatch causes OAuth callbacks and email links to fail.
+</ParamField>
+
+<Warning>
+  In production, always replace the default `BETTER_AUTH_SECRET` with a securely generated random value. Using the default placeholder value is a security risk.
+</Warning>
+
+## Email and password
+
+Email and password login is enabled by default. Email verification is required before a new account can sign in — this means `RESEND_API_KEY` must be configured if you want new users to complete sign-up.
+
+If you are running a single-user Docker instance and do not want email verification, you can disable it by not configuring a `RESEND_API_KEY`. In that case, sign-up will succeed but verification emails will not be sent — adjust this to your operational needs.
+
+## Single-user mode
+
+For a personal Docker deployment with no email provider configured:
+
+```bash
+docker run -d --name dory \
+  -p 3000:3000 \
+  -v /data/dory:/data/dory \
+  -e DS_SECRET_KEY="$(openssl rand -base64 32 | tr -d '\n')" \
+  -e BETTER_AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
+  -e TRUSTED_ORIGINS="http://localhost:3000" \
+  dorylab/dory:latest
+```
+
+No OAuth app or email provider is required for single-user local use.
+
+## GitHub OAuth
+
+<Steps>
+  <Step title="Create a GitHub OAuth app">
+    Go to **GitHub Settings → Developer settings → OAuth Apps → New OAuth App**.
+
+    Fill in the fields:
+    - **Application name**: Dory (or any name)
+    - **Homepage URL**: your `BETTER_AUTH_URL` value, e.g. `https://dory.example.com`
+    - **Authorization callback URL**: `https://dory.example.com/api/auth/callback/github`
+
+    Click **Register application**, then generate a client secret.
+  </Step>
+  <Step title="Set the environment variables">
+    Add the client ID and secret to your Dory configuration:
+
+    ```bash
+    GITHUB_CLIENT_ID=your_github_client_id
+    GITHUB_CLIENT_SECRET=your_github_client_secret
+    ```
+  </Step>
+  <Step title="Restart the container">
+    ```bash
+    docker stop dory && docker start dory
+    ```
+
+    The GitHub login option will appear on the sign-in page.
+  </Step>
+</Steps>
+
+<Note>
+  The callback URL must exactly match what you register in the GitHub OAuth app. Using `http` vs `https` or a different port will cause the OAuth flow to fail.
+</Note>
+
+## Email verification with Resend
+
+Dory uses [Resend](https://resend.com) to send transactional emails: verification emails, password reset emails, and organization invitations.
+
+<Steps>
+  <Step title="Create a Resend account and API key">
+    Sign up at [resend.com](https://resend.com), create an API key from the dashboard, and verify your sending domain.
+  </Step>
+  <Step title="Set the API key">
+    ```bash
+    RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
+    ```
+  </Step>
+  <Step title="Restart the container">
+    ```bash
+    docker stop dory && docker start dory
+    ```
+
+    New user registrations will now receive a verification email before they can sign in.
+  </Step>
+</Steps>
+
+## Session behavior
+
+- Sessions expire after **30 days** of inactivity.
+- The session expiry is refreshed every **24 hours** of active use.
+- Sessions are stored in the Dory application database (PGLite or PostgreSQL).
