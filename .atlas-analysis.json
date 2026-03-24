@@ -1,0 +1,136 @@
+{
+  "projectType": "saas",
+  "projectName": "Dory",
+  "projectDescription": "AI-native SQL workspace combining an intelligent SQL editor, schema-aware AI copilot, database chatbot, and operational tools for ClickHouse, PostgreSQL, and MySQL in a single unified studio.",
+  "theme": "sequoia",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "deployment/docker",
+              "deployment/desktop"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/sql-editor",
+              "features/sql-copilot",
+              "features/database-chat",
+              "features/schema-explorer",
+              "features/query-visualization"
+            ]
+          },
+          {
+            "group": "Database Support",
+            "pages": [
+              "databases/clickhouse",
+              "databases/postgresql",
+              "databases/mysql"
+            ]
+          },
+          {
+            "group": "ClickHouse Operations",
+            "pages": [
+              "clickhouse/monitoring",
+              "clickhouse/privileges"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/ai-providers",
+              "configuration/authentication",
+              "configuration/database-storage"
+            ]
+          },
+          {
+            "group": "Connections",
+            "pages": [
+              "connections/overview",
+              "connections/adding-connection",
+              "connections/ssh-tunneling"
+            ]
+          },
+          {
+            "group": "Organizations & Teams",
+            "pages": [
+              "organizations/overview",
+              "organizations/members",
+              "organizations/billing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Self-Hosting",
+        "groups": [
+          {
+            "group": "Deployment",
+            "pages": [
+              "self-hosting/overview",
+              "self-hosting/docker",
+              "self-hosting/environment",
+              "self-hosting/storage"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "self-hosting/authentication",
+              "self-hosting/encryption",
+              "self-hosting/trusted-origins"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Releases",
+            "pages": [
+              "changelog/latest",
+              "changelog/v0-4",
+              "changelog/v0-3"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "SQL Copilot with schema-aware AI assistance (Ask, Action, Context modes)",
+    "Schema-aware autocomplete for tables, columns, functions, and aliases",
+    "Intelligent multi-tab SQL editor with saved queries and result sets",
+    "Built-in database chatbot for conversational data exploration",
+    "Instant query visualization with charts",
+    "ClickHouse deep integration with real-time monitoring (P50/P95 latency, QPM)",
+    "ClickHouse privilege management UI for users, roles, and grants",
+    "Pluggable AI provider architecture (OpenAI, Anthropic, Google, xAI, Qwen)",
+    "Desktop app (macOS, Windows) and Docker self-hosted web deployment",
+    "Organization and team management with billing support"
+  ],
+  "publicApiSurface": [
+    "GET/POST /api/query — Execute SQL queries against a connection",
+    "GET/POST /api/connection — Manage database connections",
+    "POST /api/copilot — SQL Copilot AI actions (ask, fix, explain)",
+    "POST /api/chat — Database chatbot conversation endpoint",
+    "GET /api/monitoring — ClickHouse monitoring metrics",
+    "GET/POST /api/privileges — ClickHouse user and role management",
+    "POST /api/ai — AI provider gateway",
+    "GET/POST /api/workspace — Workspace and saved queries management",
+    "GET/POST /api/organization — Organization management",
+    "POST /api/auth — Authentication (sign-in, sign-up, OAuth)"
+  ]
+}
